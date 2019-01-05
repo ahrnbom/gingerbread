@@ -221,6 +221,27 @@ mSet:
     jr nz, .loop
     ret
     
+
+; --- Boot process and interrupts ---
+; Feel free to change interrupts if your game should use them
+
+; Interrupts
+SECTION	"Vblank",HOME[$0040]
+    jp	DMACODELOC ; update sprites every time the Vblank interrupt is called (~60Hz)
+SECTION	"LCDC",HOME[$0048]
+    reti
+SECTION	"Timer_Overflow",HOME[$0050]
+    reti
+SECTION	"Serial",HOME[$0058]
+    reti
+SECTION	"p1thru4",HOME[$0060]
+    reti
+
+; These are the first lines the boot loader will run. Make sure you have defined a "begin" label in your game code!
+SECTION	"start",HOME[$0100]
+    nop
+    jp	begin
+
     
 SECTION "Technical stuff, DMA and stop/start LCD",HOME    
 initdma:

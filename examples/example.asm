@@ -17,23 +17,6 @@ INCLUDE "gingerbread.asm"
 SECTION "Include@banks",DATA
 INCLUDE "images/title.inc"
 
-; Interrupts
-SECTION	"Vblank",HOME[$0040]
-    jp	DMACODELOC ; update sprites every time the Vblank interrupt is called (~60Hz)
-SECTION	"LCDC",HOME[$0048]
-    reti
-SECTION	"Timer_Overflow",HOME[$0050]
-    reti
-SECTION	"Serial",HOME[$0058]
-    reti
-SECTION	"p1thru4",HOME[$0060]
-    reti
-
-; boot loader jumps to here.
-SECTION	"start",HOME[$0100]
-    nop
-    jp	begin
-
 
 SECTION "header",HOME[$0104]
     ;ROM header, starting with "Nintendo" logo. If this is modified, the game won't start on a real Gameboy.
@@ -84,7 +67,7 @@ ENDR
 ENDM    
     
 SECTION "StartOfGameCode",HOME    
-begin:
+begin: ; GingerBread assumes that the label "begin" is where the game should start
     nop 
     di
     
