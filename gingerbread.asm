@@ -20,16 +20,16 @@ KEY_RIGHT   EQU %00000001
 BG_PALETTE  EQU $FF47
 
 ; Memory ranges
-rVRAM        equ $8000 ; up to $A000
-rSCRN0       equ $9800 ; up to $9BFF
-rSCRN1       equ $9C00 ; up to $9FFF
-rRAM         equ $C000 ; up to $E000
-rHRAM        equ $F800 ; up to $FFFE
-rOAMRAM      equ $FE00 ; up to $FE9F
-rAUD3WAVERAM equ $FF30 ; $FF30-$FF3F
+TILEDATA_START     equ $8000 ; up to $A000
+MAPDATA_START      equ $9800 ; up to $9BFF
+MAPDATA1_START     equ $9C00 ; up to $9FFF
+RAM_START          equ $C000 ; up to $E000
+HRAM_START         equ $F800 ; up to $FFFE
+OAMRAM_START       equ $FE00 ; up to $FE9F
+AUD3WAVERAM_START  equ $FF30 ; $FF30-$FF3F
 
 DMACODELOC	    equ	$ff80
-OAMDATALOC	    equ	rRAM
+OAMDATALOC	    equ	RAM_START
 OAMDATALOCBANK	equ	OAMDATALOC/$100 
 OAMDATALENGTH	equ	$A0
 
@@ -220,3 +220,46 @@ mSet:
     dec b
     jr nz, .loop
     ret
+    
+    
+SECTION "Technical stuff, DMA and stop/start LCD",HOME    
+initdma:
+	ld	de, DMACODELOC
+	ld	hl, dmacode
+	ld	bc, dmaend-dmacode
+	call mCopyVRAM
+	ret
+dmacode:
+	push	af
+	ld	a, OAMDATALOCBANK
+	ldh	[rDMA], a
+	ld	a, $28
+dma_wait:
+	dec	a
+	jr	nz, dma_wait
+	pop	af
+	reti
+dmaend:
+    nop 
+    
+StopLCD:
+    ld a, [rLCDC]
+    rlca  
+    ret nc ; In this case, the LCD is already off
+
+.wait:
+    ld a,[rLY]
+    cp 145
+    jr nz, .wait
+
+    ld  a, [rLCDC]
+    res 7, a 
+    ld  [rLCDC], a
+
+    ret
+
+StartLCD:
+    ; Turns on LCD with default settings 
+    ld	a, LCDCF_ON|LCDCF_BG8000|LCDCF_BG9800|LCDCF_BGON|LCDCF_OBJ8|LCDCF_OBJON
+	ld	[rLCDC], a
+    ret     

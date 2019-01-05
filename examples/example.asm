@@ -114,11 +114,11 @@ begin:
     ld [BankSwitch], a
     
     ld hl, title_tile_data
-    ld de, rVRAM
+    ld de, TILEDATA_START
     ld bc, title_tile_data_size
     call mCopy
     
-    CopyRegionToVRAM 18, 20, title_map_data, rSCRN0
+    CopyRegionToVRAM 18, 20, title_map_data, MAPDATA_START
     
     call StartLCD
     
@@ -128,44 +128,3 @@ TitleLoop:
     
     jr TitleLoop
     
-SECTION "Technical stuff",HOME    
-initdma:
-	ld	de, DMACODELOC
-	ld	hl, dmacode
-	ld	bc, dmaend-dmacode
-	call mCopyVRAM
-	ret
-dmacode:
-	push	af
-	ld	a, OAMDATALOCBANK
-	ldh	[rDMA], a
-	ld	a, $28
-dma_wait:
-	dec	a
-	jr	nz, dma_wait
-	pop	af
-	reti
-dmaend:
-    nop 
-    
-StopLCD:
-    ld a, [rLCDC]
-    rlca  
-    ret nc ; In this case, the LCD is already off
-
-.wait:
-    ld a,[rLY]
-    cp 145
-    jr nz, .wait
-
-    ld  a, [rLCDC]
-    res 7, a 
-    ld  [rLCDC], a
-
-    ret
-
-StartLCD:
-    ; Turns on LCD with default settings 
-    ld	a, LCDCF_ON|LCDCF_BG8000|LCDCF_BG9800|LCDCF_BGON|LCDCF_OBJ8|LCDCF_OBJON
-	ld	[rLCDC], a
-    ret     
