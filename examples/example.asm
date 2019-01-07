@@ -16,6 +16,7 @@ INCLUDE "gingerbread.asm"
 ; This section is for including files that need to be in data banks
 SECTION "Include@banks",DATA
 INCLUDE "images/title.inc"
+INCLUDE "images/pong.inc"
 
 
 SECTION "header",HOME[$0104]
@@ -105,9 +106,80 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     
     call StartLCD
     
+    ; Everything up to this point is simply an example demo which shows a single image. If you want
+    ; to use this as your starting point, remove all lines below.
+    
 TitleLoop:
     halt
-    nop
+    nop ; Always do a nop after a halt, because of a CPU bug
+    
+    call ReadKeys
+    and KEY_A | KEY_START
+    cp 0
+    
+    jr nz, TransitionToGame
     
     jr TitleLoop
     
+ShortWait:
+    ld b, 20
+    
+.loop:    
+    halt 
+    nop 
+    
+    dec b 
+    ld a, b
+    cp 0 
+    jr nz, .loop 
+    
+    ret 
+    
+TransitionToGame:
+    ld a, %11111001
+    ld [BG_PALETTE], a
+    
+    call ShortWait
+    
+    ld a, %11111110
+    ld [BG_PALETTE], a
+    
+    call ShortWait
+    
+    ld a, %11111111
+    ld [BG_PALETTE], a
+    
+    call ShortWait
+    
+    ; Now that the screen is completely black, load the game graphics
+    
+    ld a, BANK(title_tile_data)
+    ld [BankSwitch], a
+    
+    ld hl, pong_tile_data
+    ld de, TILEDATA_START
+    ld bc, pong_tile_data_size
+    call mCopyVRAM
+    
+    CopyRegionToVRAM 18, 20, pong_map_data, MAPDATA_START
+    
+    ; Now fade back to normal palette
+    
+    ld a, %11111110
+    ld [BG_PALETTE], a
+    
+    call ShortWait
+    
+    ld a, %11111001
+    ld [BG_PALETTE], a 
+    
+    call ShortWait
+    
+    ld a, %11100100
+    ld [BG_PALETTE], a 
+    
+    call ShortWait
+    
+    ; Let's put the sprites in place
+    
+    jp TitleLoop

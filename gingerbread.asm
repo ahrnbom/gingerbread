@@ -226,15 +226,15 @@ mSet:
 ; Feel free to change interrupts if your game should use them
 
 ; Interrupts
-SECTION	"Vblank",HOME[$0040]
-    jp	DMACODELOC ; update sprites every time the Vblank interrupt is called (~60Hz)
-SECTION	"LCDC",HOME[$0048]
+SECTION	"vblank interrupt",HOME[$0040]
+    jp	DMACODELOC ; sprites should be updated on every vblank
+SECTION	"LCDC interrupt",HOME[$0048]
     reti
-SECTION	"Timer_Overflow",HOME[$0050]
+SECTION	"Timer overflow interrupt",HOME[$0050]
     reti
-SECTION	"Serial",HOME[$0058]
+SECTION	"Serial interrupt",HOME[$0058]
     reti
-SECTION	"p1thru4",HOME[$0060]
+SECTION	"p1234 interrupt",HOME[$0060]
     reti
 
 ; These are the first lines the boot loader will run. Make sure you have defined a "begin" label in your game code!
