@@ -78,13 +78,16 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     ; Initialize display
     call StopLCD
     call initdma
-    ld	a, IEF_VBLANK
+    ld	a, IEF_VBLANK ; We only want vblank interrupts (for updating sprites)
     ld	[rIE],a 
     
     ei
     
+    ; Set default palettes
     ld a, %11100100
     ld [BG_PALETTE], a
+    ld [SPRITE_PALETTE_1], a
+    ld [SPRITE_PALETTE_2], a 
     
     ; Reset sprites
     ld   hl, OAMDATALOC
@@ -134,6 +137,31 @@ ShortWait:
     jr nz, .loop 
     
     ret 
+
+; X on B, Y on C
+PlaceBall:    
+    ; Left part of ball
+    ld a, c ; Y location
+    ld [RAM_START], a
+    ld a, b ; X location 
+    ld [RAM_START+1], a 
+    ld a, $54 ; Tile number 
+    ld [RAM_START+2], a
+    xor a ; Flags
+    ld [RAM_START+3], a 
+    
+    ; Right part of ball
+    ld a, c ; Y location
+    ld [RAM_START+4], a
+    ld a, b ; X location
+    add 8 ; right part of ball should be 8 pixels to the right     
+    ld [RAM_START+5], a 
+    ld a, $56 ; Tile number 
+    ld [RAM_START+6], a
+    xor a ; Flags
+    ld [RAM_START+7], a     
+    
+    ret
     
 TransitionToGame:
     ld a, %11111001
@@ -181,5 +209,11 @@ TransitionToGame:
     call ShortWait
     
     ; Let's put the sprites in place
+    
+    ld b, 100
+    ld c, 50
+    call PlaceBall
+    
+    
     
     jp TitleLoop

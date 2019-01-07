@@ -17,7 +17,9 @@ KEY_LEFT    EQU %00000010
 KEY_RIGHT   EQU %00000001
 
 ; Graphics
-BG_PALETTE  EQU $FF47
+BG_PALETTE       EQU $FF47
+SPRITE_PALETTE_1 EQU $FF48
+SPRITE_PALETTE_2 EQU $FF49
 
 ; Memory ranges
 TILEDATA_START     equ $8000 ; up to $A000
@@ -238,12 +240,12 @@ SECTION	"p1234 interrupt",HOME[$0060]
     reti
 
 ; These are the first lines the boot loader will run. Make sure you have defined a "begin" label in your game code!
-SECTION	"start",HOME[$0100]
+SECTION	"GingerBread start",HOME[$0100]
     nop
     jp	begin
 
     
-SECTION "Technical stuff, DMA and stop/start LCD",HOME    
+SECTION "GingerBread Technical stuff, DMA and stop/start LCD",HOME    
 initdma:
 	ld	de, DMACODELOC
 	ld	hl, dmacode
@@ -280,7 +282,7 @@ StopLCD:
     ret
 
 StartLCD:
-    ; Turns on LCD with default settings 
-    ld	a, LCDCF_ON|LCDCF_BG8000|LCDCF_BG9800|LCDCF_BGON|LCDCF_OBJ8|LCDCF_OBJON
+    ; Turns on LCD with reasonable settings (with 8x16 sprites!) 
+    ld	a, LCDCF_ON|LCDCF_BG8000|LCDCF_BG9800|LCDCF_BGON|LCDCF_OBJ16|LCDCF_OBJON
 	ld	[rLCDC], a
     ret     
