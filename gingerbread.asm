@@ -25,15 +25,17 @@ SPRITE_PALETTE_2 EQU $FF49
 TILEDATA_START     equ $8000 ; up to $A000
 MAPDATA_START      equ $9800 ; up to $9BFF
 MAPDATA1_START     equ $9C00 ; up to $9FFF
-RAM_START          equ $C000 ; up to $E000
+
+RAM_START          equ $C000 ; up to $E000, only write to data after USER_RAM_START as GingerBread uses some RAM before this for sprites etc.
+SPRITES_START      equ $C000 ; up to $C0A0
+USER_RAM_START     equ $C100 ; up to $E000
+
 HRAM_START         equ $F800 ; up to $FFFE
 OAMRAM_START       equ $FE00 ; up to $FE9F
 AUD3WAVERAM_START  equ $FF30 ; $FF30-$FF3F
 
-DMACODELOC	    equ	$ff80
-OAMDATALOC	    equ	RAM_START
-OAMDATALOCBANK	equ	OAMDATALOC/$100 
-OAMDATALENGTH	equ	$A0
+DMACODE_START   equ $FF80
+SPRITES_LENGTH  equ $A0
 
 STATF_LYC     EQU  %01000000 ; LYCEQULY Coincidence (Selectable)
 STATF_MODE10  EQU  %00100000 ; Mode 10
@@ -229,7 +231,7 @@ mSet:
 
 ; Interrupts
 SECTION	"vblank interrupt",HOME[$0040]
-    jp	DMACODELOC ; sprites should be updated on every vblank
+    jp	DMACODE_START ; sprites should be updated on every vblank
 SECTION	"LCDC interrupt",HOME[$0048]
     reti
 SECTION	"Timer overflow interrupt",HOME[$0050]
@@ -247,14 +249,14 @@ SECTION	"GingerBread start",HOME[$0100]
     
 SECTION "GingerBread Technical stuff, DMA and stop/start LCD",HOME    
 initdma:
-	ld	de, DMACODELOC
+	ld	de, DMACODE_START
 	ld	hl, dmacode
 	ld	bc, dmaend-dmacode
 	call mCopyVRAM
 	ret
 dmacode:
 	push	af
-	ld	a, OAMDATALOCBANK
+	ld	a, SPRITES_START/$100 ; When doing DMA, the address is given as an 8-bit number, to be multiplied by $100
 	ldh	[rDMA], a
 	ld	a, $28
 dma_wait:
