@@ -116,7 +116,10 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
 SECTION "RAM variables",WRAM0[$C100]
 BALL_POSITION: DS 2
 LEFT_PADDLE_POSITION: DS 2
-RIGHT_PADDLE_POSITION: DS 2    
+RIGHT_PADDLE_POSITION: DS 2  
+
+; Definition of some constants
+PADDLE_SPEED equ 2 ; pixels per frame   
 
 SECTION "Pong game code",HOME
 TitleLoop:
@@ -285,4 +288,50 @@ TransitionToGame:
     ld [RIGHT_PADDLE_POSITION+1], a 
     call DrawRightPaddle
     
-    jp TitleLoop
+    jp GameLoop 
+
+; Modifies AF 
+; Moves the left paddle up, making sure not to move it outside the playing field 
+MoveLeftPaddleUp:
+    ld a, [LEFT_PADDLE_POSITION+1]
+    sub PADDLE_SPEED
+    
+    ; Check if too high up 
+    cp 24
+    ret c 
+    
+    ld [LEFT_PADDLE_POSITION+1], a 
+    ret 
+
+; Modifies AF
+; Same as MoveLeftPaddleUp, except Down     
+MoveLeftPaddleDown:    
+    ld a, [LEFT_PADDLE_POSITION+1]
+    add PADDLE_SPEED
+    
+    ; Check if too far down 
+    cp 130
+    ret nc
+    
+    ld [LEFT_PADDLE_POSITION+1], a
+    ret 
+    
+GameLoop:
+    call DrawLeftPaddle
+    call DrawRightPaddle
+    call DrawBall
+
+    halt 
+    nop 
+    
+    call ReadKeys
+    push af ; Store key status so it can be used twice; there's no "else" in ASM 
+    and KEY_UP
+    cp 0 
+    call nz, MoveLeftPaddleUp
+    pop af 
+    and KEY_DOWN
+    cp 0 
+    call nz, MoveLeftPaddleDown
+    
+    jp GameLoop 
