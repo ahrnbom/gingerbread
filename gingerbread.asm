@@ -16,10 +16,15 @@ KEY_UP      EQU %00000100
 KEY_LEFT    EQU %00000010
 KEY_RIGHT   EQU %00000001
 
-; Graphics
+; Graphics palettes (monochrome)
 BG_PALETTE       EQU $FF47
 SPRITE_PALETTE_1 EQU $FF48
 SPRITE_PALETTE_2 EQU $FF49
+
+; Scrolling: Set these to nonzero values to scroll the screen across the 256x256 rendering surface
+SCROLL_X         EQU $FF43
+SCROLL_Y         EQU $FF42
+; They see me scrollin'... They hatin'...
 
 ; Memory ranges
 TILEDATA_START     equ $8000 ; up to $A000

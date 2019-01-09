@@ -115,6 +115,7 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
 ; Definition of some RAM variables 
 SECTION "RAM variables",WRAM0[$C100]
 BALL_POSITION: DS 2
+BALL_DIRECTION: DS 2 
 LEFT_PADDLE_POSITION: DS 2
 RIGHT_PADDLE_POSITION: DS 2  
 
@@ -288,6 +289,12 @@ TransitionToGame:
     ld [RIGHT_PADDLE_POSITION+1], a 
     call DrawRightPaddle
     
+    ; Set initial ball movement 
+    ld a, 2 ; dx 
+    ld [BALL_DIRECTION], a 
+    ld a, 1 ; dy 
+    ld [BALL_DIRECTION+1], a 
+    
     jp GameLoop 
 
 ; Modifies AF 
@@ -315,6 +322,53 @@ MoveLeftPaddleDown:
     
     ld [LEFT_PADDLE_POSITION+1], a
     ret 
+
+
+; Modifies AF 
+; Moves the right paddle up, making sure not to move it outside the playing field 
+MoveRightPaddleUp:
+    ld a, [RIGHT_PADDLE_POSITION+1]
+    sub PADDLE_SPEED
+    
+    ; Check if too high up 
+    cp 24
+    ret c 
+    
+    ld [RIGHT_PADDLE_POSITION+1], a 
+    ret 
+
+; Modifies AF
+; Same as MoveRightPaddleUp, except Down     
+MoveRightPaddleDown:    
+    ld a, [RIGHT_PADDLE_POSITION+1]
+    add PADDLE_SPEED
+    
+    ; Check if too far down 
+    cp 130
+    ret nc
+    
+    ld [RIGHT_PADDLE_POSITION+1], a
+    ret 
+
+; Modifies AF and BC    
+UpdateBall:
+    ; Store dx in B, and add to ball x
+    ld a, [BALL_DIRECTION]
+    ld b, a 
+    ld a, [BALL_POSITION]
+    add b 
+    ld [BALL_POSITION], a 
+    
+    ; Store dy in C, and add to ball y 
+    ld a, [BALL_DIRECTION+1]
+    ld c, a 
+    ld a, [BALL_POSITION+1]
+    add c 
+    ld [BALL_POSITION+1], a 
+    
+    ; TODO: Collision detection
+    
+    ret 
     
 GameLoop:
     call DrawLeftPaddle
@@ -333,5 +387,21 @@ GameLoop:
     and KEY_DOWN
     cp 0 
     call nz, MoveLeftPaddleDown
+    
+    ; Compare ball's and right paddle's y values and move paddle accordingly
+    ld a, [BALL_POSITION+1]
+    sub 8 ; because paddle is taller than ball 
+    ld b, a 
+    ld a, [RIGHT_PADDLE_POSITION+1]
+    push af 
+    push bc 
+    cp b
+    call nc, MoveRightPaddleUp
+    pop bc 
+    pop af 
+    cp b 
+    call c, MoveRightPaddleDown
+    
+    call UpdateBall
     
     jp GameLoop 
