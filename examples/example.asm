@@ -118,9 +118,12 @@ BALL_POSITION: DS 2
 BALL_DIRECTION: DS 2 
 LEFT_PADDLE_POSITION: DS 2
 RIGHT_PADDLE_POSITION: DS 2  
+RIGHT_PADDLE_CHECK_TIME: DS 1 
+RIGHT_PADDLE_DIRECTION: DS 1
 
 ; Definition of some constants
-PADDLE_SPEED equ 2 ; pixels per frame   
+PADDLE_SPEED                    equ 2 ; pixels per frame   
+RIGHT_PADDLE_CHECK_FREQUENCY    equ 6 ; how many frame should pass between each check if right paddle should move up/down 
 
 SECTION "Pong game code",HOME
 TitleLoop:
@@ -295,6 +298,11 @@ TransitionToGame:
     ld a, 1 ; dy 
     ld [BALL_DIRECTION+1], a 
     
+    ; Initialize right paddle check counter and direction 
+    xor a 
+    ld [RIGHT_PADDLE_CHECK_TIME], a 
+    ld [RIGHT_PADDLE_DIRECTION], a 
+    
     jp GameLoop 
 
 ; Modifies AF 
@@ -350,6 +358,14 @@ MoveRightPaddleDown:
     ld [RIGHT_PADDLE_POSITION+1], a
     ret 
 
+    
+ReverseBallDY:
+    ; 0 - dy will be a positive integer, but it still works because of overflow
+    xor a 
+    sub c 
+    ld [BALL_DIRECTION+1], a 
+    ret
+    
 ; Modifies AF and BC    
 UpdateBall:
     ; Store dx in B, and add to ball x
@@ -366,8 +382,60 @@ UpdateBall:
     add c 
     ld [BALL_POSITION+1], a 
     
-    ; TODO: Collision detection
+    ; Check if ball collides with ceiling, if so reverse dy
+    ld a, [BALL_POSITION+1]
+    cp 24
+    call c, ReverseBallDY
     
+    ; Same but for the floor
+    ld a, [BALL_POSITION+1]
+    cp 144
+    call nc, ReverseBallDY
+    
+    ret 
+
+RightPaddleStartMovingDown:
+    ld a, 1 
+    ld [RIGHT_PADDLE_DIRECTION], a 
+    ret 
+    
+RightPaddleStartMovingUp:
+    xor a 
+    ld [RIGHT_PADDLE_DIRECTION], a
+    ret 
+    
+UpdateRightPaddleDirection:    
+    ; Reset check counter
+    xor a 
+    ld [RIGHT_PADDLE_CHECK_TIME], a 
+
+    ; Compare ball's and right paddle's y values and move paddle accordingly
+    ld a, [BALL_POSITION+1]
+    sub 8 ; because paddle is taller than ball 
+    ld b, a 
+    ld a, [RIGHT_PADDLE_POSITION+1]
+    push af 
+    push bc 
+    cp b
+    call nc, RightPaddleStartMovingUp
+    pop bc 
+    pop af 
+    cp b 
+    call c, RightPaddleStartMovingDown
+    
+    ret 
+    
+UpdateRightPaddle:
+    ld a, [RIGHT_PADDLE_DIRECTION]
+    cp 0 
+    jr z, .moveUp
+
+.moveDown:
+    call MoveRightPaddleDown
+    ret
+
+.moveUp:
+    call MoveRightPaddleUp
     ret 
     
 GameLoop:
@@ -388,20 +456,14 @@ GameLoop:
     cp 0 
     call nz, MoveLeftPaddleDown
     
-    ; Compare ball's and right paddle's y values and move paddle accordingly
-    ld a, [BALL_POSITION+1]
-    sub 8 ; because paddle is taller than ball 
-    ld b, a 
-    ld a, [RIGHT_PADDLE_POSITION+1]
-    push af 
-    push bc 
-    cp b
-    call nc, MoveRightPaddleUp
-    pop bc 
-    pop af 
-    cp b 
-    call c, MoveRightPaddleDown
-    
     call UpdateBall
+    
+    ld a, [RIGHT_PADDLE_CHECK_TIME]
+    inc a 
+    ld [RIGHT_PADDLE_CHECK_TIME], a 
+    cp RIGHT_PADDLE_CHECK_FREQUENCY
+    call z, UpdateRightPaddleDirection 
+    
+    call UpdateRightPaddle
     
     jp GameLoop 
