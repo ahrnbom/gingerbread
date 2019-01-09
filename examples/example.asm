@@ -366,7 +366,81 @@ ReverseBallDY:
     ld [BALL_DIRECTION+1], a 
     ret
     
-; Modifies AF and BC    
+ReverseBallDX:
+    xor a 
+    sub b 
+    ld [BALL_DIRECTION], a 
+    ret 
+
+CheckCollisionLeftPaddle:
+    ; First check if the ball is far enough to the left 
+    ld a, [BALL_POSITION]
+    cp 16
+    ret nc 
+    
+    ; Now check if it's far enough down 
+    ld a, [LEFT_PADDLE_POSITION+1]
+    ld d, a 
+    ld a, [BALL_POSITION+1]
+    add 8
+    cp d 
+    ret c
+    
+    ; Now check if it's not too far down 
+    sub 40
+    cp d 
+    ret nc 
+    
+    call ReverseBallDX
+    
+    ; To prevent ball from getting stuck, make sure dx > 0 and it's a bit to the right 
+    ld a, [BALL_POSITION]
+    add 2 
+    ld [BALL_POSITION], a 
+    
+    ld a, [BALL_DIRECTION]
+    cp 128
+    ret c 
+    
+    ; If we get here, it means ball direction was wrong 
+    call ReverseBallDX
+    ret 
+    
+CheckCollisionRightPaddle:
+    ; First check if the ball is far enough to the right 
+    ld a, [BALL_POSITION]
+    cp 142
+    ret c 
+    
+    ; Now check if it's far enough down 
+    ld a, [RIGHT_PADDLE_POSITION+1]
+    ld d, a 
+    ld a, [BALL_POSITION+1]
+    add 8
+    cp d 
+    ret c
+    
+    ; Now check if it's not too far down 
+    sub 40
+    cp d 
+    ret nc 
+    
+    call ReverseBallDX    
+    
+    ; To prevent ball from getting stuck, make sure dx < 0 and it's a bit to the left 
+    ld a, [BALL_POSITION]
+    sub 2 
+    ld [BALL_POSITION], a 
+    
+    ld a, [BALL_DIRECTION]
+    cp 128
+    ret nc 
+    
+    ; If we get here, it means ball direction was wrong 
+    call ReverseBallDX
+    ret 
+    
+; Modifies AF and BC and DE  
 UpdateBall:
     ; Store dx in B, and add to ball x
     ld a, [BALL_DIRECTION]
@@ -391,6 +465,10 @@ UpdateBall:
     ld a, [BALL_POSITION+1]
     cp 144
     call nc, ReverseBallDY
+    
+    ; Check collision with paddles 
+    call CheckCollisionRightPaddle
+    call CheckCollisionLeftPaddle
     
     ret 
 
@@ -426,7 +504,7 @@ UpdateRightPaddleDirection:
     ret 
     
 UpdateRightPaddle:
-    ld a, [RIGHT_PADDLE_DIRECTION]
+    ld a, [RIGHT_PADDLE_DIRECTION] ; 0 means up, 1 means down 
     cp 0 
     jr z, .moveUp
 
@@ -447,7 +525,7 @@ GameLoop:
     nop 
     
     call ReadKeys
-    push af ; Store key status so it can be used twice; there's no "else" in ASM 
+    push af ; Store key status so it can be used twice 
     and KEY_UP
     cp 0 
     call nz, MoveLeftPaddleUp
