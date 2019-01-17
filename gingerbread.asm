@@ -62,7 +62,7 @@ rIE EQU $FFFF
 IEF_HILO    EQU  %00010000 ; Transition from High to Low of Pin number P10-P13
 IEF_SERIAL  EQU  %00001000 ; Serial I/O transfer end
 IEF_TIMER   EQU  %00000100 ; Timer Overflow
-IEF_LCDC    EQU  %00000010 ; LCDC (see STAT)
+IEF_LCDC    EQU  %00000010 ; LCDC
 IEF_VBLANK  EQU  %00000001 ; V-Blank
 
 ; LCD stuff 
@@ -84,6 +84,31 @@ LCDCF_OBJOFF  EQU  %00000000 ; OBJ Display
 LCDCF_OBJON   EQU  %00000010 ; OBJ Display
 LCDCF_BGOFF   EQU  %00000000 ; BG Display
 LCDCF_BGON    EQU  %00000001 ; BG Display
+
+; Sound stuff 
+SOUND_CH1_SWEEP     EQU $FF10 ; bit 7: unused, bits 6-4: sweep time, bit 3: frequency increase/decrease, bits 2-0: number of sweep shifts
+SOUND_CH1_LENGTH    EQU $FF11 ; bits 7-6: wave duty, bits 5-0: length of sound data 
+SOUND_CH1_ENVELOPE  EQU $FF12 ; bits 7-4: start value for envelope, bit 3: envelope decrease/increase, bits 2-0: number of envelope sweeps
+SOUND_CH1_LOWFREQ   EQU $FF13 ; bits 7-0: lower 8 bits of the sound frequency 
+SOUND_CH1_HIGHFREQ  EQU $FF14 ; bit 7: restart channel, bit 6: counter/consecutive, bits 5-3: unused, bits 2-0: highest 3 bits of frequency
+
+SOUND_CH2_START     EQU $FF15 ; Not used but you can write zeroes here 
+SOUND_CH2_LENGTH    EQU $FF16 ; bits 7-6: wave duty, bits 5-0: length of sound data 
+SOUND_CH2_ENVELOPE  EQU $FF17 ; bits 7-4: start value for envelope, bit 3: envelope decrease/increase, bits 2-0: number of envelope sweeps
+SOUND_CH2_LOWFREQ   EQU $FF18 ; bits 7-0: lower 8 bits of the sound frequency 
+SOUND_CH2_HIGHFREQ  EQU $FF19 ; bit 7: restart channel, bit 6: counter/consecutive, bits 5-3: unused, bits 2-0: highest 3 bits of frequency
+
+SOUND_CH3_ONOFF     EQU $FF1A ; bit 7: on/off, bits 6-0: unused 
+SOUND_CH3_LENGTH    EQU $FF1B ; bits 7-0: length of sound 
+SOUND_CH3_VOLUME    EQU $FF1C ; bits 6-5: audio volume (%00 is mute, %01 is loudest, %10 is pretty quiet and %11 is very quiet)
+SOUND_CH3_LOWFREQ   EQU $FF1D ; bits 7-0: lower 8 bits of the sound frequency
+SOUND_CH3_HIGHFREQ  EQU $FF1E ; bit 7: restart channel, bit 6: counter/consecutive, bits 5-3: unused, bits 2-0: highest 3 bits of frequency
+
+SOUND_CH4_START     EQU $FF1F ; Not used but you can write zeroes here 
+SOUND_CH4_LENGTH    EQU $FF20 ; bits 5-0: length of sound 
+SOUND_CH4_ENVELOPE  EQU $FF21 ; bits 7-4: start value for envelope, bit 3: envelope decrease/increase, bits 2-0: number of envelope sweeps
+SOUND_CH4_POLY      EQU $FF22 ; bits 7-4: polynomial counter, bit 3: number of steps (15 or 7), bits 2-0: ratio of frequency division (%000 gives highest frequency, %111 the lowest)
+SOUND_CH4_OPTIONS   EQU $FF23 ; bit 7: restart channel, bit 6: counter/consecutive
 
 ; O RLY?
 rLY EQU $FF44
