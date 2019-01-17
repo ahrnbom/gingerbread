@@ -86,24 +86,28 @@ LCDCF_BGOFF   EQU  %00000000 ; BG Display
 LCDCF_BGON    EQU  %00000001 ; BG Display
 
 ; Sound stuff 
-SOUND_CH1_SWEEP     EQU $FF10 ; bit 7: unused, bits 6-4: sweep time, bit 3: frequency increase/decrease, bits 2-0: number of sweep shifts
+; Channel 1 (square with sweep effect)
+SOUND_CH1_START     EQU $FF10 ; bit 7: unused, bits 6-4: sweep time, bit 3: sweep frequency increase/decrease, bits 2-0: number of sweep shifts
 SOUND_CH1_LENGTH    EQU $FF11 ; bits 7-6: wave duty, bits 5-0: length of sound data 
 SOUND_CH1_ENVELOPE  EQU $FF12 ; bits 7-4: start value for envelope, bit 3: envelope decrease/increase, bits 2-0: number of envelope sweeps
 SOUND_CH1_LOWFREQ   EQU $FF13 ; bits 7-0: lower 8 bits of the sound frequency 
 SOUND_CH1_HIGHFREQ  EQU $FF14 ; bit 7: restart channel, bit 6: counter/consecutive, bits 5-3: unused, bits 2-0: highest 3 bits of frequency
 
+; Channel 2 (square without sweep effect)
 SOUND_CH2_START     EQU $FF15 ; Not used but you can write zeroes here 
 SOUND_CH2_LENGTH    EQU $FF16 ; bits 7-6: wave duty, bits 5-0: length of sound data 
 SOUND_CH2_ENVELOPE  EQU $FF17 ; bits 7-4: start value for envelope, bit 3: envelope decrease/increase, bits 2-0: number of envelope sweeps
 SOUND_CH2_LOWFREQ   EQU $FF18 ; bits 7-0: lower 8 bits of the sound frequency 
 SOUND_CH2_HIGHFREQ  EQU $FF19 ; bit 7: restart channel, bit 6: counter/consecutive, bits 5-3: unused, bits 2-0: highest 3 bits of frequency
 
-SOUND_CH3_ONOFF     EQU $FF1A ; bit 7: on/off, bits 6-0: unused 
+; Channel 3 (custom wave)
+SOUND_CH3_START     EQU $FF1A ; bit 7: on/off, bits 6-0: unused 
 SOUND_CH3_LENGTH    EQU $FF1B ; bits 7-0: length of sound 
 SOUND_CH3_VOLUME    EQU $FF1C ; bits 6-5: audio volume (%00 is mute, %01 is loudest, %10 is pretty quiet and %11 is very quiet)
 SOUND_CH3_LOWFREQ   EQU $FF1D ; bits 7-0: lower 8 bits of the sound frequency
 SOUND_CH3_HIGHFREQ  EQU $FF1E ; bit 7: restart channel, bit 6: counter/consecutive, bits 5-3: unused, bits 2-0: highest 3 bits of frequency
 
+; Channel 4 (noise)
 SOUND_CH4_START     EQU $FF1F ; Not used but you can write zeroes here 
 SOUND_CH4_LENGTH    EQU $FF20 ; bits 5-0: length of sound 
 SOUND_CH4_ENVELOPE  EQU $FF21 ; bits 7-4: start value for envelope, bit 3: envelope decrease/increase, bits 2-0: number of envelope sweeps
@@ -159,12 +163,47 @@ ReadKeys:
     
     pop bc 
     ret
+
+Section "GingerBreadSound",HOME 
+; HL should point to a table which first contains a DW with either SOUND_CH1_START, SOUND_CH2_START, SOUND_CH3_START or SOUND_CH4_START
+; followed by five values to be written to those addresses (see comments by the definitions of those constants)
+PlaySoundHL: 
+    push de 
+    
+    ; Read channel start into DE 
+    ld a, [hl]
+    ld e, a 
+    ld a, [hl+]
+    ld d, a 
+    
+    ; Read data from table and feed into the channel start 
+    ld a, [hl+] 
+    ld [de], a
+    inc de 
+    
+    ld a, [hl+]
+    ld [de], a 
+    inc de
+    
+    ld a, [hl+]
+    ld [de], a 
+    inc de 
+    
+    ld a, [hl+]
+    ld [de], a
+    inc de 
+
+    ld a, [hl]
+    ld [de], a 
+    
+    pop de 
+    ret 
     
 Section "GingerBreadMemory",HOME
 WaitForNonBusyLCD: MACRO
     ld  a,[rSTAT]   
     and STATF_BUSY  
-    jr  nz,@-4     ; Jumps up 4 bytes in the code (that is, two lines in this case)
+    jr  nz,@-4     ; Jumps up 4 bytes in the code (two lines in this case)
 ENDM
 
 WaitForNonBusyLCDSafeA: MACRO
