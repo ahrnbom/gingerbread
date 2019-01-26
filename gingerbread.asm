@@ -116,7 +116,7 @@ SOUND_CH4_START     EQU $FF1F ; Not used but you can write zeroes here
 SOUND_CH4_LENGTH    EQU $FF20 ; bits 5-0: length of sound 
 SOUND_CH4_ENVELOPE  EQU $FF21 ; bits 7-4: start value for envelope, bit 3: envelope decrease/increase, bits 2-0: number of envelope sweeps
 SOUND_CH4_POLY      EQU $FF22 ; bits 7-4: polynomial counter, bit 3: number of steps (15 or 7), bits 2-0: ratio of frequency division (%000 gives highest frequency, %111 the lowest)
-SOUND_CH4_OPTIONS   EQU $FF23 ; bit 7: restart channel, bit 6: counter/consecutive
+SOUND_CH4_OPTIONS   EQU $FF23 ; bit 7: restart channel, bit 6: use length (as specified in $FF20)
 
 ; O RLY?
 rLY EQU $FF44
@@ -196,7 +196,7 @@ PlaySoundHL:
     push de 
     
     ; Read channel start into DE 
-    ld a, [hl]
+    ld a, [hl+]
     ld e, a 
     ld a, [hl+]
     ld d, a 

@@ -441,6 +441,9 @@ CheckCollisionRightPaddle:
     
     call ReverseBallDX    
     
+    ld hl, Sound_ball_bounce
+    call PlaySoundHL
+    
     ; To prevent ball from getting stuck, make sure dx < 0 and it's a bit to the left 
     ld a, [BALL_POSITION]
     sub 2 
