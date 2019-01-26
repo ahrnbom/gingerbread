@@ -112,6 +112,8 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     ; Everything up to this point is simply an example demo which shows a single image. If you want
     ; to use this as your starting point, remove all lines below.
     
+    call EnableAudio
+    
 ; Definition of some RAM variables 
 SECTION "RAM variables",WRAM0[$C100]
 BALL_POSITION: DS 2

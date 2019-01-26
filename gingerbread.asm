@@ -86,6 +86,10 @@ LCDCF_BGOFF   EQU  %00000000 ; BG Display
 LCDCF_BGON    EQU  %00000001 ; BG Display
 
 ; Sound stuff 
+SOUND_VOLUME    EQU $FF24
+SOUND_OUTPUTS   EQU $FF25
+SOUND_ONOFF     EQU $FF26
+
 ; Channel 1 (square with sweep effect)
 SOUND_CH1_START     EQU $FF10 ; bit 7: unused, bits 6-4: sweep time, bit 3: sweep frequency increase/decrease, bits 2-0: number of sweep shifts
 SOUND_CH1_LENGTH    EQU $FF11 ; bits 7-6: wave duty, bits 5-0: length of sound data 
@@ -165,8 +169,29 @@ ReadKeys:
     ret
 
 Section "GingerBreadSound",HOME 
+; Enables audio on all channels, at maximum output volume. 
+; Overwrites AF 
+EnableAudio:
+    ld a, %11111111
+    ld [SOUND_VOLUME],  a ; Max out the audio volume 
+    ld [SOUND_OUTPUTS], a ; Output all channels to both left/right speakers (when using headphones)
+    ld [SOUND_ONOFF],   a ; Turn audio on 
+    
+    ret 
+
+; Use this if your game doesn't use audio, to save some battery life 
+; Overwrites AF     
+DisableAudio: 
+    xor a 
+    ld [SOUND_VOLUME],  a ; Turn off the audio volume 
+    ld [SOUND_OUTPUTS], a ; Output no channels to no left/right speakers (when using headphones)
+    ld [SOUND_ONOFF],   a ; Turn audio off 
+    
+    ret 
+    
 ; HL should point to a table which first contains a DW with either SOUND_CH1_START, SOUND_CH2_START, SOUND_CH3_START or SOUND_CH4_START
 ; followed by five values to be written to those addresses (see comments by the definitions of those constants)
+; Overwrites AF and HL 
 PlaySoundHL: 
     push de 
     
