@@ -130,7 +130,7 @@ RIGHT_PADDLE_CHECK_FREQUENCY    equ 6 ; how many frame should pass between each 
 SECTION "Sound effect definitions",HOME
 Sound_ball_bounce:
 DW SOUND_CH4_START
-DB %00000000  ; Data to be written to SOUND_CH4_START
+DB %00000000 ; Data to be written to SOUND_CH4_START
 DB %00000100 ; Data to be written to SOUND_CH4_LENGTH
 DB %11110111 ; Data to be written to SOUND_CH4_ENVELOPE 
 DB %01010101 ; Data to be written to SOUND_CH4_POLY 
