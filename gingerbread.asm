@@ -90,14 +90,14 @@ SOUND_VOLUME    EQU $FF24
 SOUND_OUTPUTS   EQU $FF25
 SOUND_ONOFF     EQU $FF26
 
-; Channel 1 (square with sweep effect)
+; Channel 1 (square with sweep and enevelope effects)
 SOUND_CH1_START     EQU $FF10 ; bit 7: unused, bits 6-4: sweep time, bit 3: sweep frequency increase/decrease, bits 2-0: number of sweep shifts
 SOUND_CH1_LENGTH    EQU $FF11 ; bits 7-6: wave duty, bits 5-0: length of sound data 
 SOUND_CH1_ENVELOPE  EQU $FF12 ; bits 7-4: start value for envelope, bit 3: envelope decrease/increase, bits 2-0: number of envelope sweeps
 SOUND_CH1_LOWFREQ   EQU $FF13 ; bits 7-0: lower 8 bits of the sound frequency 
 SOUND_CH1_HIGHFREQ  EQU $FF14 ; bit 7: restart channel, bit 6: use length, bits 5-3: unused, bits 2-0: highest 3 bits of frequency
 
-; Channel 2 (square without sweep effect)
+; Channel 2 (square with enevelope effect, with no sweep effect)
 SOUND_CH2_START     EQU $FF15 ; Not used but you can write zeroes here 
 SOUND_CH2_LENGTH    EQU $FF16 ; bits 7-6: wave duty, bits 5-0: length of sound data 
 SOUND_CH2_ENVELOPE  EQU $FF17 ; bits 7-4: start value for envelope, bit 3: envelope decrease/increase, bits 2-0: number of envelope sweeps
@@ -117,6 +117,10 @@ SOUND_CH4_LENGTH    EQU $FF20 ; bits 5-0: length of sound
 SOUND_CH4_ENVELOPE  EQU $FF21 ; bits 7-4: start value for envelope, bit 3: envelope decrease/increase, bits 2-0: number of envelope sweeps
 SOUND_CH4_POLY      EQU $FF22 ; bits 7-4: polynomial counter, bit 3: number of steps (15 or 7), bits 2-0: ratio of frequency division (%000 gives highest frequency, %111 the lowest)
 SOUND_CH4_OPTIONS   EQU $FF23 ; bit 7: restart channel, bit 6: use length
+
+; Wave table for Channel 3 
+SOUND_WAVE_TABLE_START EQU $FF30
+SOUND_WAVE_TABLE_STOP  EQU $FF3F
 
 ; O RLY?
 rLY EQU $FF44
