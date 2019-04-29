@@ -6,6 +6,11 @@
 
 ; --- Hardware constants ---
 
+; General 
+ROM_BANK_SWITCH     EQU $2000
+SAVEDATA            EQU $0000
+MBC5_RAMB           EQU $4000
+
 ; Key status
 KEY_START   EQU %10000000
 KEY_SELECT  EQU %01000000
@@ -27,20 +32,22 @@ SCROLL_Y         EQU $FF42
 ; They see me scrollin'... They hatin'...
 
 ; Memory ranges
-TILEDATA_START     equ $8000 ; up to $A000
-MAPDATA_START      equ $9800 ; up to $9BFF
-MAPDATA1_START     equ $9C00 ; up to $9FFF
+TILEDATA_START     EQU $8000 ; up to $A000
+MAPDATA_START      EQU $9800 ; up to $9BFF
+MAPDATA1_START     EQU $9C00 ; up to $9FFF
 
-RAM_START          equ $C000 ; up to $E000, only write to data after USER_RAM_START as GingerBread uses some RAM before this for sprites etc.
-SPRITES_START      equ $C000 ; up to $C0A0
-USER_RAM_START     equ $C100 ; up to $E000
+SAVEDATA_START     EQU $A000 ; up to $BFFF
 
-HRAM_START         equ $F800 ; up to $FFFE
-OAMRAM_START       equ $FE00 ; up to $FE9F
-AUD3WAVERAM_START  equ $FF30 ; $FF30-$FF3F
+RAM_START          EQU $C000 ; up to $E000, only write to data after USER_RAM_START as GingerBread uses some RAM before this for sprites etc.
+SPRITES_START      EQU $C000 ; up to $C0A0
+USER_RAM_START     EQU $C100 ; up to $E000
 
-DMACODE_START   equ $FF80
-SPRITES_LENGTH  equ $A0
+HRAM_START         EQU $F800 ; up to $FFFE
+OAMRAM_START       EQU $FE00 ; up to $FE9F
+AUD3WAVERAM_START  EQU $FF30 ; $FF30-$FF3F
+
+DMACODE_START   EQU $FF80
+SPRITES_LENGTH  EQU $A0
 
 STATF_LYC     EQU  %01000000 ; LYCEQULY Coincidence (Selectable)
 STATF_MODE10  EQU  %00100000 ; Mode 10
@@ -324,6 +331,30 @@ mSet:
     ret
     
 
+; --- Save data ---
+
+; Allows save data to become accessible to read and write. Note that save data is disabled by default. It also must be supported by 
+; your cartidge and game header for this to work.
+EnableSaveData:
+    ld a, $0A
+    ld [SAVEDATA], a 
+    
+    ret  
+
+; Disables save data. Do this as soon as you are done using SRAM, to prevent data loss in case of a crash.    
+DisableSaveData:
+    xor a 
+    ld [SAVEDATA], a
+    
+    ret 
+
+; Assuming your game uses MBC5, having different numbers on A (between $00 and $0F) will activate different
+; save data banks. Do this before running EnableSaveData.    
+ChooseSaveDataBank:
+    ld [MBC5_RAMB], a 
+    
+    ret 
+    
 ; --- Boot process and interrupts ---
 ; Feel free to change interrupts if your game should use them
 
