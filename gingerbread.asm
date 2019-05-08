@@ -32,9 +32,9 @@ SCROLL_Y         EQU $FF42
 ; They see me scrollin'... They hatin'...
 
 ; Memory ranges
-TILEDATA_START     EQU $8000 ; up to $A000
-MAPDATA_START      EQU $9800 ; up to $9BFF
-MAPDATA1_START     EQU $9C00 ; up to $9FFF
+TILEDATA_START              EQU $8000 ; up to $A000
+BACKGROUND_MAPDATA_START    EQU $9800 ; up to $9BFF
+WINDOW_MAPDATA_START        EQU $9C00 ; up to $9FFF
 
 SAVEDATA_START     EQU $A000 ; up to $BFFF
 
@@ -331,6 +331,100 @@ mSet:
     ret
     
 
+; --- Text and number display ---
+
+; Draws two decimal (base 10) numbers, stored in a single 8-bit number (for example $42 would represent 42)
+; A - The two numbers 
+; B - Tile number of 0 (assuming that the rest of the digits follow, precisely in the order 0123456789)
+; C - Zero if writing to background, non-zero if writing to window
+; D - X position to write
+; E - Y position to write
+DrawTwoDecimalNumbers:     
+    push hl ; Use HL for temporary storage 
+    push af ; To store the original two numbers to write
+    
+    ; Set HL to base address for background/window depending on value in C 
+    ld a, c 
+    cp 0 
+    jr nz, .useWindow
+    
+.useBackground:
+    ld hl, BACKGROUND_MAPDATA_START
+    jr .computePosition
+    
+.useWindow:    
+    ld hl, WINDOW_MAPDATA_START
+    
+.computePosition:    
+    ; Addition of 16-bit numbers require a full other 16-bit number to add. So we use BC for that here 
+    push bc 
+    
+    ; Add X-position 
+    ld c, d 
+    ld b, 0 
+    ; Now BC contains the X value as a 16-bit number 
+    
+    add hl, bc 
+    
+    ; Add Y-position 
+    ld c, e 
+    ; Each line on the background/window is 32 tiles long, so to convert this to number of lines, we add the Y value 32 times) 
+    REPT 32
+    add hl, bc 
+    ENDR 
+    
+    pop bc 
+    pop af 
+    
+    ; We don't need C anymore so we can use it to temporarily store the two numbers to write 
+    ld c, a 
+    
+    ; Get the leftmost number first 
+    and %11110000
+    swap a 
+    
+    ; Convert to tile number 
+    add b 
+    
+    ; Write the number 
+    WaitForNonBusyLCDSafeA
+    ld [hl+], a 
+    
+    ; Get the rightmost number 
+    ld a, c 
+    and %00001111
+    
+    ; Convert to tile number 
+    add b
+    
+    ; Write the number 
+    WaitForNonBusyLCDSafeA
+    ld [hl], a 
+    
+    pop hl 
+    ret 
+
+; Draws four decimal (base 10) numbers, stored in a 16-bit number (for example $1234 would represent 1234)
+; HL - The four numbers 
+; B - Tile number of 0 (assuming that the rest of the digits follow, precisely in the order 0123456789)
+; C - Zero if writing to background, non-zero if writing to window
+; D - X position to write
+; E - Y position to write    
+DrawFourDecimalNumbers:
+    ; Write the leftmost numbers first 
+    ld a, h
+    call DrawTwoDecimalNumbers
+    
+    ; Move "x" two steps to the right 
+    inc d
+    inc d
+    
+    ; Then draw the rightmost numbers
+    ld a, l 
+    call DrawTwoDecimalNumbers
+    
+    ret 
+    
 ; --- Save data ---
 
 ; Allows save data to become accessible to read and write. Note that save data is disabled by default. It also must be supported by 
@@ -414,6 +508,14 @@ StopLCD:
 
 StartLCD:
     ; Turns on LCD with reasonable settings (with 8x16 sprites!) 
-    ld	a, LCDCF_ON|LCDCF_BG8000|LCDCF_BG9800|LCDCF_BGON|LCDCF_OBJ16|LCDCF_OBJON
+    ; It makes the background map be at $9800-$9BFF, while the window (which is off) be at $9C00-9FFF, which 
+    ; is consistent with the definitions of BACKGROUND_MAPDATA_START and WINDOW_MAPDATA_START
+    ld	a, LCDCF_ON|LCDCF_BG8000|LCDCF_BG9800|LCDCF_BGON|LCDCF_OBJ16|LCDCF_OBJON|LCDCF_WIN9C00|LCDCF_WINOFF
 	ld	[rLCDC], a
     ret     
+    
+TurnOnWindow:
+    ; Same as StartLCD except the window is on. Turn it off by calling StartLCD (which doesn't hurt calling even when the LCD is already on)
+    ld	a, LCDCF_ON|LCDCF_BG8000|LCDCF_BG9800|LCDCF_BGON|LCDCF_OBJ16|LCDCF_OBJON|LCDCF_WIN9C00|LCDCF_WINON
+	ld	[rLCDC], a
+    ret

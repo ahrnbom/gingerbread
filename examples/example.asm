@@ -105,7 +105,7 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     ld bc, title_tile_data_size
     call mCopy
     
-    CopyRegionToVRAM 18, 20, title_map_data, MAPDATA_START
+    CopyRegionToVRAM 18, 20, title_map_data, BACKGROUND_MAPDATA_START
     
     call StartLCD
     
@@ -122,6 +122,8 @@ LEFT_PADDLE_POSITION: DS 2
 RIGHT_PADDLE_POSITION: DS 2  
 RIGHT_PADDLE_CHECK_TIME: DS 1 
 RIGHT_PADDLE_DIRECTION: DS 1
+LEFT_SCORE: DS 1
+RIGHT_SCORE: DS 1 
 
 ; Definition of some constants
 PADDLE_SPEED                    equ 2 ; pixels per frame   
@@ -163,6 +165,26 @@ ShortWait:
     
     ret 
 
+; Modifies everything    
+DrawScore:    
+    ld a, [LEFT_SCORE]
+    ld b, $5A ; Tile number of 0 
+    ld c, 0 ; Write to background 
+    ld d, 1 ; X position 
+    ld e, 0 ; Y position 
+    
+    call DrawTwoDecimalNumbers
+    
+    ld a, [RIGHT_SCORE]
+    ld b, $5A ; Tile number of 0
+    ld c, 0 ; Write to background 
+    ld d, 17 ; X position 
+    ld e, 0 ; Y position 
+    
+    call DrawTwoDecimalNumbers
+    
+    ret 
+    
 ; Modifies AF
 DrawBall:    
     ; Left part of ball
@@ -264,7 +286,7 @@ TransitionToGame:
     ld bc, pong_tile_data_size
     call mCopyVRAM
     
-    CopyRegionToVRAM 18, 20, pong_map_data, MAPDATA_START
+    CopyRegionToVRAM 18, 20, pong_map_data, BACKGROUND_MAPDATA_START
     
     ; Now fade back to normal palette
     
@@ -313,6 +335,10 @@ TransitionToGame:
     xor a 
     ld [RIGHT_PADDLE_CHECK_TIME], a 
     ld [RIGHT_PADDLE_DIRECTION], a 
+    
+    ; Initialize score 
+    ld [LEFT_SCORE], a 
+    ld [RIGHT_SCORE], a 
     
     jp GameLoop 
 
@@ -537,6 +563,7 @@ GameLoop:
     call DrawLeftPaddle
     call DrawRightPaddle
     call DrawBall
+    call DrawScore 
 
     halt 
     nop 
