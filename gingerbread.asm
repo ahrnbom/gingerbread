@@ -333,6 +333,62 @@ mSet:
 
 ; --- Text and number display ---
 
+; Draws text until a certain number of characters have been written, with positions as X/Y coordinates. This might be a bit slow for repeated use.
+; B - number of characters to write 
+; C - drawing to background (0) or window (1) 
+; D - X position 
+; E - Y position 
+; HL - address to start of text to write 
+RenderTextByLength:
+    ; Convert position 
+    push hl 
+    
+    xor a 
+    ld h, a
+    ld l, a 
+    call XYtoPosition
+    
+    ld e, l ; Position is always a single byte because we started HL at zero 
+    
+    pop hl 
+    
+    call RenderTextByLengthToPosition
+    ret 
+
+; Draws text until a certain number of characters have been writtens, with position numbers using the formula pos = x + y*32
+; B - number of characters to write 
+; C - drawing to background (zero) or window (non-zero)
+; E - position number 
+; HL - address to start of text to write 
+RenderTextByLengthToPosition:
+    push hl 
+    ; For now, HL will store the position to write to 
+    call InitializePositionForBackgroundOrWindow
+    
+    ; Add starting position onto background/window
+    ld d, 0
+    add hl, de 
+    
+    ; Now store this onto DE so we can get the read address back again 
+    ld d, h
+    ld l, e 
+    pop hl 
+     
+.draw:
+    ; Write characters until B is zero, decreasing it every time
+    ld a, [hl+]
+    WaitForNonBusyLCDSafeA ; Writing to VRAM needs to be timed 
+    ld [de], a 
+    inc de 
+    
+    dec b 
+    ; Is B zero? If so we should stop 
+    ld a, b 
+    cp 0 
+    ret z 
+    
+    jr .draw
+
 ; Converts X and Y coordinates to a single position number by the formula pos = x + 32*y 
 ; D - X position 
 ; E - Y position 
@@ -392,6 +448,21 @@ DrawTwoDecimalNumbers:
     call DrawTwoDecimalNumbersByPosition
 
     ret 
+
+; Sets HL to either the start of background map data or window map data, depending on C
+; C - zero for background, non-zero for window 
+InitializePositionForBackgroundOrWindow:
+    ld a, c 
+    cp 0 
+    jr nz, .useWindow
+    
+.useBackground:
+    ld hl, BACKGROUND_MAPDATA_START
+    ret
+    
+.useWindow:    
+    ld hl, WINDOW_MAPDATA_START
+    ret 
     
 ; Draws two decimal (base 10) numbers, stored in a single 8-bit number (for example $42 would represent 42)
 ; Unlike DrawTwoDecimalNumbers, the position input here is a single position number. This executes faster 
@@ -406,16 +477,7 @@ DrawTwoDecimalNumbersByPosition:
     push af ; To store the original two numbers to write
     
     ; Set HL to base address for background/window depending on value in C 
-    ld a, c 
-    cp 0 
-    jr nz, .useWindow
-    
-.useBackground:
-    ld hl, BACKGROUND_MAPDATA_START
-    jr .draw
-    
-.useWindow:    
-    ld hl, WINDOW_MAPDATA_START
+    call InitializePositionForBackgroundOrWindow
     
 .draw:    
     ; To get the correct position, we add the position number onto HL  

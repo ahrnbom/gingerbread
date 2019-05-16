@@ -129,6 +129,44 @@ RIGHT_SCORE: DS 1
 PADDLE_SPEED                    equ 2 ; pixels per frame   
 RIGHT_PADDLE_CHECK_FREQUENCY    equ 15 ; how many frame should pass between each check if right paddle should move up/down 
 
+SECTION "Text definitions",HOME 
+; Charmap definition (based on the pong.png image, and looking in the VRAM viewer after loading it in BGB helps finding the values for each character)
+CHARMAP "A",$64
+CHARMAP "B",$65
+CHARMAP "C",$66
+CHARMAP "D",$67
+CHARMAP "E",$68
+CHARMAP "F",$69
+CHARMAP "G",$6A
+CHARMAP "H",$6B
+CHARMAP "I",$6C
+CHARMAP "J",$6D
+CHARMAP "K",$6E
+CHARMAP "L",$6F
+CHARMAP "M",$70
+CHARMAP "N",$71
+CHARMAP "O",$72
+CHARMAP "P",$73
+CHARMAP "Q",$74
+CHARMAP "R",$75
+CHARMAP "S",$76
+CHARMAP "T",$77
+CHARMAP "U",$78
+CHARMAP "V",$79
+CHARMAP "W",$7A
+CHARMAP "X",$7B
+CHARMAP "Y",$7C
+CHARMAP "Z",$7D
+CHARMAP "<happy>",$7E
+CHARMAP "<sad>",$7F
+CHARMAP "<heart>",$80
+CHARMAP " ",$81
+
+; Text definitions 
+TextOne:
+DB "ALL YOUR BASE <heart>"
+
+
 SECTION "Sound effect definitions",HOME
 Sound_ball_bounce:
 DW SOUND_CH4_START
@@ -525,6 +563,12 @@ CheckBallOut:
     ld a, 72
     ld [BALL_POSITION+1], a 
     
+    ; Draw some text 
+    ld c, 0 
+    ld b, 15
+    ld hl, TextOne 
+    ld e, 3 + 4*32
+    call RenderTextByLengthToPosition
     
     REPT 15
     halt 
