@@ -337,6 +337,7 @@ mSet:
 ; D - X position 
 ; E - Y position 
 ; Output is added onto HL (which may be non-zero initially)
+; Overwrites A 
 XYtoPosition:
     ; Addition of 16-bit numbers require a full other 16-bit number to add. So we use BC for that here 
     push bc 
@@ -348,13 +349,18 @@ XYtoPosition:
     
     add hl, bc 
     
-    ; Add Y-position 
+    ; Add Y-position if y>0
+    ld a, e 
+    cp 0 
+    jr z, .end 
+    
     ld c, e 
     ; Each line on the background/window is 32 tiles long, so to convert this to number of lines, we add the Y value 32 times) 
     REPT 32
     add hl, bc 
     ENDR 
     
+.end:
     pop bc 
     ret 
 
