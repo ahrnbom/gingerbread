@@ -127,7 +127,7 @@ RIGHT_SCORE: DS 1
 
 ; Definition of some constants
 PADDLE_SPEED                    equ 2 ; pixels per frame   
-RIGHT_PADDLE_CHECK_FREQUENCY    equ 6 ; how many frame should pass between each check if right paddle should move up/down 
+RIGHT_PADDLE_CHECK_FREQUENCY    equ 15 ; how many frame should pass between each check if right paddle should move up/down 
 
 SECTION "Sound effect definitions",HOME
 Sound_ball_bounce:
@@ -483,6 +483,56 @@ CheckCollisionRightPaddle:
     call ReverseBallDX
     ret 
     
+CheckBallOut:
+    ld a, [BALL_POSITION]
+    ; If the x position is larger than 160, the ball is outside the field. This is true regardless of 
+    ; if the ball went out to the left or right! 8-bit unsigned numbers, am I right? Or left?
+    
+    cp 160
+    ret c 
+    
+    ; If we get here, it means the ball was indeed outside 
+    ; Now we need to know which side. We can just look at the ball's direction 
+    
+    ld a, [BALL_DIRECTION]
+    cp 128
+    jr nc, .leftSide
+
+.rightSide:
+    ; Increase left player's score 
+    ld a, [LEFT_SCORE]
+    add a, 1 ; Since it's in decimal format, we can't use inc/dec and we need to remember to use daa     
+    daa 
+    ld [LEFT_SCORE], a 
+    
+    jr .end 
+    
+.leftSide:
+    ; Increase right player's score 
+    ld a, [RIGHT_SCORE]
+    add 1
+    daa 
+    ld [RIGHT_SCORE], a 
+    
+.end:
+    ; Place ball at initial position 
+    
+    ; X 
+    ld a, 80
+    ld [BALL_POSITION], a 
+    
+    ; Y 
+    ld a, 72
+    ld [BALL_POSITION+1], a 
+    
+    
+    REPT 15
+    halt 
+    nop 
+    ENDR
+    
+    ret 
+    
 ; Modifies AF and BC and DE  
 UpdateBall:
     ; Store dx in B, and add to ball x
@@ -508,6 +558,9 @@ UpdateBall:
     ld a, [BALL_POSITION+1]
     cp 144
     call nc, ReverseBallDY
+    
+    ; Check if ball is outside the playing field 
+    call CheckBallOut
     
     ; Check collision with paddles 
     call CheckCollisionRightPaddle
