@@ -333,29 +333,11 @@ mSet:
 
 ; --- Text and number display ---
 
-; Draws two decimal (base 10) numbers, stored in a single 8-bit number (for example $42 would represent 42)
-; A - The two numbers 
-; B - Tile number of 0 (assuming that the rest of the digits follow, precisely in the order 0123456789)
-; C - Zero if writing to background, non-zero if writing to window
-; D - X position to write
-; E - Y position to write
-DrawTwoDecimalNumbers:     
-    push hl ; Use HL for temporary storage 
-    push af ; To store the original two numbers to write
-    
-    ; Set HL to base address for background/window depending on value in C 
-    ld a, c 
-    cp 0 
-    jr nz, .useWindow
-    
-.useBackground:
-    ld hl, BACKGROUND_MAPDATA_START
-    jr .computePosition
-    
-.useWindow:    
-    ld hl, WINDOW_MAPDATA_START
-    
-.computePosition:    
+; Converts X and Y coordinates to a single position number by the formula pos = x + 32*y 
+; D - X position 
+; E - Y position 
+; Output is added onto HL (which may be non-zero initially)
+XYtoPosition:
     ; Addition of 16-bit numbers require a full other 16-bit number to add. So we use BC for that here 
     push bc 
     
@@ -374,6 +356,66 @@ DrawTwoDecimalNumbers:
     ENDR 
     
     pop bc 
+    ret 
+
+; Draws two decimal (base 10) numbers, stored in a single 8-bit number (for example $42 would represent 42)
+; A - The two numbers 
+; B - Tile number of 0 (assuming that the rest of the digits follow, precisely in the order 0123456789)
+; C - Zero if writing to background, non-zero if writing to window
+; D - X position to write
+; E - Y position to write
+DrawTwoDecimalNumbers:     
+    push af 
+    push hl 
+    
+    ; Reset HL 
+    xor a 
+    ld h, a 
+    ld l, a 
+    
+    call XYtoPosition
+    
+    ; The ByPosition call below expects the position number (now on HL) to be on E
+    ; Since we started with HL=0, we can be certain that the number is only in L because 
+    ; it will be lower than 256
+    ld e, l 
+    
+    pop hl 
+    pop af 
+    
+    call DrawTwoDecimalNumbersByPosition
+
+    ret 
+    
+; Draws two decimal (base 10) numbers, stored in a single 8-bit number (for example $42 would represent 42)
+; Unlike DrawTwoDecimalNumbers, the position input here is a single position number. This executes faster 
+; and is thus recommended if the game displays lots of text and/or numbers every frame.
+; A - The two numbers 
+; B - Tile number of 0 (assuming that the rest of the digits follow, precisely in the order 0123456789)
+; C - Zero if writing to background, non-zero if writing to window
+; E - Position number 
+; D is set by this function  
+DrawTwoDecimalNumbersByPosition:
+    push hl ; Use HL for temporary storage 
+    push af ; To store the original two numbers to write
+    
+    ; Set HL to base address for background/window depending on value in C 
+    ld a, c 
+    cp 0 
+    jr nz, .useWindow
+    
+.useBackground:
+    ld hl, BACKGROUND_MAPDATA_START
+    jr .draw
+    
+.useWindow:    
+    ld hl, WINDOW_MAPDATA_START
+    
+.draw:    
+    ; To get the correct position, we add the position number onto HL  
+    ld d, 0 
+    add hl, de 
+
     pop af 
     
     ; We don't need C anymore so we can use it to temporarily store the two numbers to write 
@@ -413,7 +455,16 @@ DrawTwoDecimalNumbers:
 DrawFourDecimalNumbers:
     ; Write the leftmost numbers first 
     ld a, h
+    
+    push bc 
+    push de 
+    push hl 
+    
     call DrawTwoDecimalNumbers
+    
+    pop hl 
+    pop de 
+    pop bc 
     
     ; Move "x" two steps to the right 
     inc d
