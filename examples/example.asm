@@ -164,10 +164,10 @@ CHARMAP " ",$81
 CHARMAP "<end>",$0 ; Choose some non-character tile that's easy to remember 
 
 ; Text definitions 
-TextOne:
+SupportiveText:
 DB "WELL DONE <happy> <heart> <end>"
 
-TextTwo:
+TauntingText:
 DB "YOU SUCK LOL <sad><end>"
 
 SECTION "Sound effect definitions",HOME
@@ -208,21 +208,20 @@ ShortWait:
 
 ; Modifies everything    
 DrawScore:    
+    ; We use the -ByPosition render calls because this is done every frame, so precomputing the position numbers at compile time
+    ; will make the code run faster 
+
     ld a, [LEFT_SCORE]
     ld b, $5A ; Tile number of 0 
     ld c, 0 ; Write to background 
-    ld d, 1 ; X position 
-    ld e, 0 ; Y position 
-    
-    call RenderTwoDecimalNumbers
+    ld de, 1 + 32*0 ; Position number (the formula is x + 32*y)
+    call RenderTwoDecimalNumbersByPosition
     
     ld a, [RIGHT_SCORE]
     ld b, $5A ; Tile number of 0
     ld c, 0 ; Write to background 
-    ld d, 17 ; X position 
-    ld e, 0 ; Y position 
-    
-    call RenderTwoDecimalNumbers
+    ld de, 17 + 32*0 ; Position number (the formula is x + 32*y)  
+    call RenderTwoDecimalNumbersByPosition
     
     ret 
     
@@ -546,9 +545,10 @@ CheckBallOut:
     daa 
     ld [LEFT_SCORE], a 
     
+    ; Show some supportive text 
     ld c, 0 
     ld b, 0
-    ld hl, TextOne
+    ld hl, SupportiveText
     ld d, 3
     ld e, 16
     call RenderTextToEnd
@@ -566,7 +566,7 @@ CheckBallOut:
     ; Show taunting text 
     ld c, 0 
     ld b, 0
-    ld hl, TextTwo
+    ld hl, TauntingText
     ld d, 3
     ld e, 16
     call RenderTextToEnd
