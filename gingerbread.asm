@@ -333,14 +333,14 @@ mSet:
 
 ; --- Text and number display ---
 
-; Draws text until a certain number of characters have been written, with positions as X/Y coordinates. This might be a bit slow for repeated use.
-; B - number of characters to write 
-; C - drawing to background (0) or window (1) 
-; D - X position 
+; Draws text until a specific end character appears, using X/Y coordinates, which can be a bit slower than RenderTextToEndByPosition
+; B - tile number of end character
+; C - zero if drawn to background, non-zero if drawn to window 
+; D - X position
 ; E - Y position 
-; HL - address to start of text to write 
-RenderTextByLength:
-    ; Convert position 
+; HL - address to start of the text to write, make sure it contains the end character somewhere 
+RenderTextToEnd:
+    ; Convert position coordinates to position number  
     push hl 
     
     xor a 
@@ -348,25 +348,80 @@ RenderTextByLength:
     ld l, a 
     call XYtoPosition
     
-    ld e, l ; Position is always a single byte because we started HL at zero 
-    
+    ; Put position number at DE and then restore HL 
+    ld d, h 
+    ld e, l  
     pop hl 
     
-    call RenderTextByLengthToPosition
+    call RenderTextToEndByPosition
+    ret     
+
+; Draws text until a specific end character appears, using a position number which is faster than RenderTextToEnd if the number is precomputed at compile time 
+; B - tile number of end character
+; C - zero if drawn to background, non-zero if drawn to window 
+; DE - position number to start writing at 
+; HL - address to start of the text to write, make sure it contains the end character somewhere 
+RenderTextToEndByPosition:
+    ; For now, HL will store the address to write to, which we'll have to compute 
+    push hl 
+    call InitializePositionForBackgroundOrWindow
+    add hl, de 
+    
+    ; Move this address onto DE so we can get the text address back 
+    ld d, h
+    ld e, l 
+    pop hl 
+    
+    ; Start writing
+    ld a, [hl]
+.draw:
+    WaitForNonBusyLCDSafeA
+    ld [de], a 
+    inc de 
+    
+    ; Check if the next character is the end character 
+    inc hl 
+    ld a, [hl]
+    cp b 
+    jr nz, .draw 
+    
+    ret 
+    
+; Draws text until a certain number of characters have been written, with positions as X/Y coordinates. This might be a bit slow for repeated use every frame.
+; B - number of characters to write 
+; C - drawing to background (0) or window (1) 
+; D - X position 
+; E - Y position 
+; HL - address to start of text to write 
+RenderTextToLength:
+    ; Convert position coordinates to position number  
+    push hl 
+    
+    xor a 
+    ld h, a
+    ld l, a 
+    call XYtoPosition
+    
+    ; Put position number at DE and then restore HL 
+    ld d, h 
+    ld e, l  
+    pop hl 
+    
+    call RenderTextToLengthByPosition
     ret 
 
 ; Draws text until a certain number of characters have been writtens, with position numbers using the formula pos = x + y*32
+; If position numbers are precomputed at compile time, this will execute faster than RenderTextToLength
 ; B - number of characters to write 
 ; C - drawing to background (zero) or window (non-zero)
-; E - position number 
+; DE - position number 
 ; HL - address to start of text to write 
-RenderTextByLengthToPosition:
+RenderTextToLengthByPosition:
     push hl 
     ; For now, HL will store the position to write to 
     call InitializePositionForBackgroundOrWindow
     
     ; Add starting position onto background/window
-    ld d, 0
     add hl, de 
     
     ; Now store this onto DE so we can get the read address back again 
@@ -426,7 +481,7 @@ XYtoPosition:
 ; C - Zero if writing to background, non-zero if writing to window
 ; D - X position to write
 ; E - Y position to write
-DrawTwoDecimalNumbers:     
+RenderTwoDecimalNumbers:     
     push af 
     push hl 
     
@@ -437,15 +492,14 @@ DrawTwoDecimalNumbers:
     
     call XYtoPosition
     
-    ; The ByPosition call below expects the position number (now on HL) to be on E
-    ; Since we started with HL=0, we can be certain that the number is only in L because 
-    ; it will be lower than 256
+    ; The ByPosition call below expects the position number (now on HL) to be on DE
+    ld d, h
     ld e, l 
     
     pop hl 
     pop af 
     
-    call DrawTwoDecimalNumbersByPosition
+    call RenderTwoDecimalNumbersByPosition
 
     ret 
 
@@ -465,14 +519,13 @@ InitializePositionForBackgroundOrWindow:
     ret 
     
 ; Draws two decimal (base 10) numbers, stored in a single 8-bit number (for example $42 would represent 42)
-; Unlike DrawTwoDecimalNumbers, the position input here is a single position number. This executes faster 
+; Unlike RenderTwoDecimalNumbers, the position input here is a position number. This executes faster if the number is precomputed 
 ; and is thus recommended if the game displays lots of text and/or numbers every frame.
 ; A - The two numbers 
 ; B - Tile number of 0 (assuming that the rest of the digits follow, precisely in the order 0123456789)
 ; C - Zero if writing to background, non-zero if writing to window
-; E - Position number 
-; D is set by this function  
-DrawTwoDecimalNumbersByPosition:
+; DE - Position number   
+RenderTwoDecimalNumbersByPosition:
     push hl ; Use HL for temporary storage 
     push af ; To store the original two numbers to write
     
@@ -481,7 +534,6 @@ DrawTwoDecimalNumbersByPosition:
     
 .draw:    
     ; To get the correct position, we add the position number onto HL  
-    ld d, 0 
     add hl, de 
 
     pop af 
@@ -520,7 +572,7 @@ DrawTwoDecimalNumbersByPosition:
 ; C - Zero if writing to background, non-zero if writing to window
 ; D - X position to write
 ; E - Y position to write    
-DrawFourDecimalNumbers:
+RenderFourDecimalNumbers:
     ; Write the leftmost numbers first 
     ld a, h
     
@@ -528,7 +580,7 @@ DrawFourDecimalNumbers:
     push de 
     push hl 
     
-    call DrawTwoDecimalNumbers
+    call RenderTwoDecimalNumbers
     
     pop hl 
     pop de 
@@ -540,7 +592,36 @@ DrawFourDecimalNumbers:
     
     ; Then draw the rightmost numbers
     ld a, l 
-    call DrawTwoDecimalNumbers
+    call RenderTwoDecimalNumbers
+    
+    ret 
+
+; Draws four decimal (base 10) numbers, stored in a 16-bit number (for example $1234 would represent 1234)
+; Unlike RenderFourDecimalNumbers, this function uses position numbers computed by pos = x + 32*y which will be 
+; faster if this number is precomputed.
+; HL - The four numbers 
+; B - Tile number of 0 (assuming that the rest of the digits follow, precisely in the order 0123456789)
+; C - Zero if writing to background, non-zero if writing to window
+; DE - Position number of first number     
+RenderFourDecimalNumbersByPosition:
+    ld a, h ; The leftmost two numbers 
+    
+    push bc 
+    push de 
+    push hl 
+    
+    call RenderTwoDecimalNumbersByPosition
+    
+    pop hl 
+    pop de 
+    pop bc 
+    
+    ; Move position two steps to the right 
+    inc de 
+    inc de 
+    
+    ld a, l ; The rightmost two numbers 
+    call RenderTwoDecimalNumbersByPosition
     
     ret 
     

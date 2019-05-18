@@ -161,11 +161,14 @@ CHARMAP "<happy>",$7E
 CHARMAP "<sad>",$7F
 CHARMAP "<heart>",$80
 CHARMAP " ",$81
+CHARMAP "<end>",$0 ; Choose some non-character tile that's easy to remember 
 
 ; Text definitions 
 TextOne:
-DB "ALL YOUR BASE <heart>"
+DB "WELL DONE <happy> <heart> <end>"
 
+TextTwo:
+DB "YOU SUCK LOL <sad><end>"
 
 SECTION "Sound effect definitions",HOME
 Sound_ball_bounce:
@@ -211,7 +214,7 @@ DrawScore:
     ld d, 1 ; X position 
     ld e, 0 ; Y position 
     
-    call DrawTwoDecimalNumbers
+    call RenderTwoDecimalNumbers
     
     ld a, [RIGHT_SCORE]
     ld b, $5A ; Tile number of 0
@@ -219,7 +222,7 @@ DrawScore:
     ld d, 17 ; X position 
     ld e, 0 ; Y position 
     
-    call DrawTwoDecimalNumbers
+    call RenderTwoDecimalNumbers
     
     ret 
     
@@ -543,6 +546,14 @@ CheckBallOut:
     daa 
     ld [LEFT_SCORE], a 
     
+    ld c, 0 
+    ld b, 0
+    ld hl, TextOne
+    ld d, 3
+    ld e, 16
+    call RenderTextToEnd
+    
+    
     jr .end 
     
 .leftSide:
@@ -551,6 +562,15 @@ CheckBallOut:
     add 1
     daa 
     ld [RIGHT_SCORE], a 
+    
+    ; Show taunting text 
+    ld c, 0 
+    ld b, 0
+    ld hl, TextTwo
+    ld d, 3
+    ld e, 16
+    call RenderTextToEnd
+    
     
 .end:
     ; Place ball at initial position 
@@ -563,12 +583,6 @@ CheckBallOut:
     ld a, 72
     ld [BALL_POSITION+1], a 
     
-    ; Draw some text 
-    ld c, 0 
-    ld b, 15
-    ld hl, TextOne 
-    ld e, 3 + 4*32
-    call RenderTextByLengthToPosition
     
     REPT 15
     halt 
