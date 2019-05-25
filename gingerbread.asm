@@ -136,7 +136,7 @@ rDMA  EQU $FF46
 
 ; --- Standard functions ---
 
-SECTION "GingerBreadKeypad",HOME
+SECTION "GingerBreadKeypad",ROM0
 ; Reads current keypad status, stores into A register, where each bit corresponds to one key being pressed or not
 ; Keys are in the following order: Start - Select - B - A - Down - Up - Left - Right
 ; The constants KEY_START etc. corresponds to the values obtained here if only that key is pressed.
@@ -179,7 +179,7 @@ ReadKeys:
     pop bc 
     ret
 
-Section "GingerBreadSound",HOME 
+Section "GingerBreadSound",ROM0 
 ; Enables audio on all channels, at maximum output volume. 
 ; Overwrites AF 
 EnableAudio:
@@ -235,7 +235,7 @@ PlaySoundHL:
     pop de 
     ret 
     
-Section "GingerBreadMemory",HOME
+Section "GingerBreadMemory",ROM0
 WaitForNonBusyLCD: MACRO
     ld  a,[rSTAT]   
     and STATF_BUSY  
@@ -444,6 +444,7 @@ RenderTextToLengthByPosition:
     
     jr .draw
 
+; Internal function 
 ; Converts X and Y coordinates to a single position number by the formula pos = x + 32*y 
 ; D - X position 
 ; E - Y position 
@@ -503,6 +504,7 @@ RenderTwoDecimalNumbers:
 
     ret 
 
+; Internal function 
 ; Sets HL to either the start of background map data or window map data, depending on C
 ; C - zero for background, non-zero for window 
 InitializePositionForBackgroundOrWindow:
@@ -653,24 +655,24 @@ ChooseSaveDataBank:
 ; Feel free to change interrupts if your game should use them
 
 ; Interrupts
-SECTION	"vblank interrupt",HOME[$0040]
+SECTION	"vblank interrupt",ROM0[$0040]
     jp	DMACODE_START ; sprites should be updated on every vblank
-SECTION	"LCDC interrupt",HOME[$0048]
+SECTION	"LCDC interrupt",ROM0[$0048]
     reti
-SECTION	"Timer overflow interrupt",HOME[$0050]
+SECTION	"Timer overflow interrupt",ROM0[$0050]
     reti
-SECTION	"Serial interrupt",HOME[$0058]
+SECTION	"Serial interrupt",ROM0[$0058]
     reti
-SECTION	"p1234 interrupt",HOME[$0060]
+SECTION	"p1234 interrupt",ROM0[$0060]
     reti
 
 ; These are the first lines the boot loader will run. Make sure you have defined a "begin" label in your game code!
-SECTION	"GingerBread start",HOME[$0100]
+SECTION	"GingerBread start",ROM0[$0100]
     nop
     jp	begin
 
     
-SECTION "GingerBread Technical stuff, DMA and stop/start LCD",HOME    
+SECTION "GingerBread Technical stuff, DMA and stop/start LCD",ROM0    
 initdma:
 	ld	de, DMACODE_START
 	ld	hl, dmacode
@@ -719,3 +721,22 @@ TurnOnWindow:
     ld	a, LCDCF_ON|LCDCF_BG8000|LCDCF_BG9800|LCDCF_BGON|LCDCF_OBJ16|LCDCF_OBJON|LCDCF_WIN9C00|LCDCF_WINON
 	ld	[rLCDC], a
     ret
+    
+SECTION "header",ROM0[$0104]
+    ;ROM header, starting with "Nintendo" logo. If this is modified, the game won't start on a real Gameboy.
+    DB $CE,$ED,$66,$66,$CC,$0D,$00,$0B,$03,$73,$00,$83,$00,$0C,$00,$0D
+    DB $00,$08,$11,$1F,$88,$89,$00,$0E,$DC,$CC,$6E,$E6,$DD,$DD,$D9,$99
+    DB $BB,$BB,$67,$63,$6E,$0E,$EC,$CC,$DD,$DC,$99,$9F,$BB,$B9,$33,$3E
+
+    DB "GingerBreadGame"
+    DB 	$80                 ; $143 - GBC functionality (0 for no, $80 for "black cart" and $C0 for GBC only)
+    DB 	0,0                 ; $144 - Licensee code (not important)
+    DB 	3                   ; $146 - SGB Support indicator (0 means no support, 3 means there is SGB support in the game)
+    DB 	$1B                 ; $147 - Cart type ($1B means MBC5 with RAM and battery save)
+    DB 	0                   ; $148 - ROM Size, 0 means 32 kB, 1 means 64 kB and so on up to 2 MB
+    DB	1                   ; $149 - RAM Size, 0 means no RAM, 1 means 2 kB, 2 -> 8 kB, 3 -> 32 kB, 4 -> 128 kB
+    DB 	1                   ; $14a - Destination code (0 means Japan, 1 mean non-Japan, doesn't matter)
+    DB 	$33                 ; $14b - Old licensee code, needs to be $33 for SGB to work
+    DB 	0                   ; $14c - Mask ROM version
+    DB 	0                   ; $14d - Complement check (important, RGBDS takes care of this)
+    DW 	0                   ; $14e - Checksum (not important, RGBDS takes care of this)
