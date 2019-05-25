@@ -2,6 +2,8 @@
 ; This section is for including files that either need to be in the home section, or files where it doesn't matter 
 SECTION "Includes@home",ROM0
 
+GAME_NAME EQUS "GBEXAMPLE" ; Max 15 characters, should be uppercase ASCII
+
 INCLUDE "gingerbread.asm"
 
 ; This section is for including files that need to be in data banks

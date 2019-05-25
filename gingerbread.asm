@@ -3,6 +3,36 @@
 ; every game will need in one form or another. It is meant to be used alongside the
 ; book... (TODO: link to the book, once available).
 
+; --- ROM Header ---
+
+IF !DEF(GAME_NAME)    
+GAME_NAME EQUS "GINGERBREAD"
+ENDC
+    
+SECTION "header",ROM0[$0104]
+
+    ; "Nintendo" logo. If this is modified, the game won't start on a real Gameboy.
+    DB $CE,$ED,$66,$66,$CC,$0D,$00,$0B,$03,$73,$00,$83,$00,$0C,$00,$0D
+    DB $00,$08,$11,$1F,$88,$89,$00,$0E,$DC,$CC,$6E,$E6,$DD,$DD,$D9,$99
+    DB $BB,$BB,$67,$63,$6E,$0E,$EC,$CC,$DD,$DC,$99,$9F,$BB,$B9,$33,$3E
+
+    ; The header, specifying ROM details. 
+    DB {GAME_NAME}          ; $134 - Title of the game, in uppercase ASCII. Should be exactly 15 characters (padded with 0s if necessary)
+REPT 15-STRLEN({GAME_NAME})
+    DB 0
+ENDR    
+    DB 	$80                 ; $143 - GBC functionality (0 for no, $80 for "black cart" and $C0 for GBC only)
+    DB 	0,0                 ; $144 - Licensee code (not important)
+    DB 	3                   ; $146 - SGB Support indicator (0 means no support, 3 means there is SGB support in the game)
+    DB 	$1B                 ; $147 - Cart type ($1B means MBC5 with RAM and battery save)
+    DB 	0                   ; $148 - ROM Size, 0 means 32 kB, 1 means 64 kB and so on up to 2 MB
+    DB	1                   ; $149 - RAM Size, 0 means no RAM, 1 means 2 kB, 2 -> 8 kB, 3 -> 32 kB, 4 -> 128 kB
+    DB 	1                   ; $14a - Destination code (0 means Japan, 1 mean non-Japan, doesn't matter)
+    DB 	$33                 ; $14b - Old licensee code, needs to be $33 for SGB to work
+    DB 	0                   ; $14c - Mask ROM version
+    DB 	0                   ; $14d - Complement check (important, RGBDS takes care of this)
+    DW 	0                   ; $14e - Checksum (not important, RGBDS takes care of this)
+
 
 ; --- Hardware constants ---
 
@@ -720,23 +750,5 @@ TurnOnWindow:
     ; Same as StartLCD except the window is on. Turn it off by calling StartLCD (which doesn't hurt calling even when the LCD is already on)
     ld	a, LCDCF_ON|LCDCF_BG8000|LCDCF_BG9800|LCDCF_BGON|LCDCF_OBJ16|LCDCF_OBJON|LCDCF_WIN9C00|LCDCF_WINON
 	ld	[rLCDC], a
-    ret
-    
-SECTION "header",ROM0[$0104]
-    ;ROM header, starting with "Nintendo" logo. If this is modified, the game won't start on a real Gameboy.
-    DB $CE,$ED,$66,$66,$CC,$0D,$00,$0B,$03,$73,$00,$83,$00,$0C,$00,$0D
-    DB $00,$08,$11,$1F,$88,$89,$00,$0E,$DC,$CC,$6E,$E6,$DD,$DD,$D9,$99
-    DB $BB,$BB,$67,$63,$6E,$0E,$EC,$CC,$DD,$DC,$99,$9F,$BB,$B9,$33,$3E
+    ret    
 
-    DB "GingerBreadGame"
-    DB 	$80                 ; $143 - GBC functionality (0 for no, $80 for "black cart" and $C0 for GBC only)
-    DB 	0,0                 ; $144 - Licensee code (not important)
-    DB 	3                   ; $146 - SGB Support indicator (0 means no support, 3 means there is SGB support in the game)
-    DB 	$1B                 ; $147 - Cart type ($1B means MBC5 with RAM and battery save)
-    DB 	0                   ; $148 - ROM Size, 0 means 32 kB, 1 means 64 kB and so on up to 2 MB
-    DB	1                   ; $149 - RAM Size, 0 means no RAM, 1 means 2 kB, 2 -> 8 kB, 3 -> 32 kB, 4 -> 128 kB
-    DB 	1                   ; $14a - Destination code (0 means Japan, 1 mean non-Japan, doesn't matter)
-    DB 	$33                 ; $14b - Old licensee code, needs to be $33 for SGB to work
-    DB 	0                   ; $14c - Mask ROM version
-    DB 	0                   ; $14d - Complement check (important, RGBDS takes care of this)
-    DW 	0                   ; $14e - Checksum (not important, RGBDS takes care of this)
