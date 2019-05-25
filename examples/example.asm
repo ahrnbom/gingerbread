@@ -2,8 +2,25 @@
 ; This section is for including files that either need to be in the home section, or files where it doesn't matter 
 SECTION "Includes@home",ROM0
 
-GAME_NAME EQUS "GBEXAMPLE " ; Max 15 characters, should be uppercase ASCII
-SGB_SUPPORT EQU 1
+; Prior to importing GingerBread, some options can be specified
+
+; Max 15 characters, should be uppercase ASCII
+GAME_NAME EQUS "GBEXAMPLE " 
+
+; Include SGB support in GingerBread. This makes the GingerBread library take up a bit more space on ROM0.
+SGB_SUPPORT EQU 1 
+
+; Include GBC support in GingerBread. This makes the GingerBread library take up slightly more space on ROM0.
+GBC_SUPPORT EQU 1
+
+; Set the size of the ROM file here. 0 means 32 kB, 1 means 64 kB, 2 means 128 kB and so on.
+ROM_SIZE EQU 0 
+
+; Set the size of save RAM inside the cartridge. 
+; If printed to real carts, it needs to be small enough to fit. 
+; 0 means no RAM, 1 means 2 kB, 2 -> 8 kB, 3 -> 32 kB, 4 -> 128 kB 
+RAM_SIZE EQU 1 
+
 INCLUDE "gingerbread.asm"
 
 ; This section is for including files that need to be in data banks
