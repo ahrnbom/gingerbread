@@ -98,6 +98,8 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     
     call EnableAudio
     
+    call SetupHighScore
+    
     jp TitleLoop
     
 ; Definition of some RAM variables 
@@ -110,6 +112,11 @@ RIGHT_PADDLE_CHECK_TIME: DS 1
 RIGHT_PADDLE_DIRECTION: DS 1
 LEFT_SCORE: DS 1
 RIGHT_SCORE: DS 1 
+
+SECTION "SRAM variables",SRAM[$A000]
+SRAM_INTEGRITY_CHECK: DS 2 ; Two bytes that should read $1337; if they do not, the save is considered corrupt or unitialized
+SRAM_HIGH_SCORE: DS 1 
+
 
 ; Definition of some constants
 PADDLE_SPEED                    equ 2 ; pixels per frame   
@@ -166,6 +173,56 @@ DB %01010101 ; Data to be written to SOUND_CH4_POLY
 DB %11000110 ; Data to be written to SOUND_CH4_OPTIONS
 
 SECTION "Pong game code",ROM0
+SetupHighScore:
+    ; For this game, we only ever use one save data bank, the first one (0)
+    xor a 
+    call ChooseSaveDataBank
+    
+    ; Activate save data so we can read and write it 
+    call EnableSaveData
+    
+    ; If the integrity check doesn't read $1337, we should initialize a default high score of 0 and then write $1337 to the integrity check position 
+    ld a, [SRAM_INTEGRITY_CHECK]
+    cp $13
+    jr nz, .initializeSRAM
+    
+    ld a, [SRAM_INTEGRITY_CHECK+1]
+    cp $37
+    jr nz, .initializeSRAM
+    
+    ; If we get here, no initialization is necessary
+    jr .print
+    
+.initializeSRAM:
+    ; Initialize high score to 0 
+    xor a 
+    ld [SRAM_HIGH_SCORE], a 
+    
+    ; Intialize integrity check so that high score will not be overwritten on next boot 
+    ld a, $13
+    ld [SRAM_INTEGRITY_CHECK], a 
+    
+    ld a, $37
+    ld [SRAM_INTEGRITY_CHECK+1], a 
+    
+    jr .print
+    
+.print:
+    ; Display current high score 
+    ld a, [SRAM_HIGH_SCORE]
+    ld b, a 
+    
+    call DisableSaveData ; Since we no longer need it. Always disable SRAM as quickly as possible.
+    
+    ld a, b 
+    ld b, $4F ; tile number of 0 character on the title screen   
+    ld c, 0   ; draw to background
+    ld d, 8   ; X position 
+    ld e, 14  ; Y position 
+    call RenderTwoDecimalNumbers
+    
+    ret 
+    
 TitleLoop:
     halt
     nop ; Always do a nop after a halt, because of a CPU bug
