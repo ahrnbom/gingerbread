@@ -5,8 +5,21 @@
 
 ; --- ROM Header ---
 
+; Before importing gingerbread.asm, you can specify the following options to affect the game header
 IF !DEF(GAME_NAME)    
 GAME_NAME EQUS "GINGERBREAD"
+ENDC
+
+IF !DEF(GBC_SUPPORT)
+H_GBC_CODE EQU $0
+ELSE
+H_GBC_CODE EQU $80
+ENDC
+
+IF !DEF(SGB_SUPPORT)
+H_SGB_CODE EQU $0
+ELSE
+H_SGB_CODE EQU $3
 ENDC
     
 SECTION "header",ROM0[$0104]
@@ -21,9 +34,9 @@ SECTION "header",ROM0[$0104]
 REPT 15-STRLEN({GAME_NAME})
     DB 0
 ENDR    
-    DB 	$80                 ; $143 - GBC functionality (0 for no, $80 for "black cart" and $C0 for GBC only)
+    DB 	H_GBC_CODE          ; $143 - GBC functionality (0 for no, $80 for "black cart" and $C0 for GBC only)
     DB 	0,0                 ; $144 - Licensee code (not important)
-    DB 	3                   ; $146 - SGB Support indicator (0 means no support, 3 means there is SGB support in the game)
+    DB 	H_SGB_CODE          ; $146 - SGB Support indicator (0 means no support, 3 means there is SGB support in the game)
     DB 	$1B                 ; $147 - Cart type ($1B means MBC5 with RAM and battery save)
     DB 	0                   ; $148 - ROM Size, 0 means 32 kB, 1 means 64 kB and so on up to 2 MB
     DB	1                   ; $149 - RAM Size, 0 means no RAM, 1 means 2 kB, 2 -> 8 kB, 3 -> 32 kB, 4 -> 128 kB
