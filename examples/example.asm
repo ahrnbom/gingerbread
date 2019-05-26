@@ -632,6 +632,33 @@ CheckBallOut:
     nop 
     ENDR
     
+    ; Check if right player's score is 10. If so, the game is over 
+    ld a, [RIGHT_SCORE]
+    cp $10
+    jr z, .gameOver
+    
+    ret 
+    
+.gameOver:
+    ; Compare player's score with high score and save new high score if it's higher 
+    ld a, [LEFT_SCORE]
+    ld b, a 
+    
+    call EnableSaveData
+    ld a, [SRAM_HIGH_SCORE]
+    
+    cp b 
+    call c, .newHighScore
+    
+    call DisableSaveData
+    
+    ; Resets the game, assuming the begin code does things like resetting RAM and initializing the stack pointer  
+    jp begin 
+    
+; Local function for writing high score to SRAM     
+.newHighScore:
+    ld a, b 
+    ld [SRAM_HIGH_SCORE], a 
     ret 
     
 ; Modifies AF and BC and DE  
