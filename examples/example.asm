@@ -62,6 +62,7 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     ; Initialize display
     call StopLCD
     call initdma
+    
     ld	a, IEF_VBLANK ; We only want vblank interrupts (for updating sprites)
     ld	[rIE],a 
     
@@ -76,8 +77,13 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     ; Reset sprites
     ld   hl, SPRITES_START
     ld   bc, SPRITES_LENGTH
-    ld   a, 0
+    xor a 
     call mSet
+    
+    ; Set background position (no scrolling)
+    xor a 
+    ld [SCROLL_X], a 
+    ld [SCROLL_Y], a 
     
     ; Load title image into VRAM
     ; We don't need VRAM-specific memory function here, because LCD is off.
@@ -162,6 +168,9 @@ DB "WELL DONE <happy> <heart> <end>"
 
 TauntingText:
 DB "YOU SUCK LOL <sad><end>"
+
+GameOverText:
+DB "GAME OVER LOLOLOLO<end>"
 
 SECTION "Sound effect definitions",ROM0
 Sound_ball_bounce:
@@ -364,11 +373,19 @@ TransitionToGame:
     ld a, BANK(title_tile_data)
     ld [ROM_BANK_SWITCH], a
     
+    ; Load pong tiles into VRAM 
     ld hl, pong_tile_data
     ld de, TILEDATA_START
     ld bc, pong_tile_data_size
     call mCopyVRAM
     
+    ; Clear out the background 
+    ld a, 1 
+    ld hl, BACKGROUND_MAPDATA_START
+    ld bc, 32*32
+    call mSetVRAM
+    
+    ; Draw the pong map tiles 
     CopyRegionToVRAM 18, 20, pong_map_data, BACKGROUND_MAPDATA_START
     
     ; Now fade back to normal palette
@@ -640,6 +657,57 @@ CheckBallOut:
     ret 
     
 .gameOver:
+    ld hl, GameOverText
+    ld b, 0 ; End character 
+    ld c, 0 ; Draw to background
+    ld d, 1 ; X position 
+    ld e, 20 ; Y position 
+    call RenderTextToEnd
+
+    ; Hide sprites 
+    ld   hl, SPRITES_START
+    ld   bc, SPRITES_LENGTH
+    xor a 
+    call mSetVRAM 
+    
+    ; Scroll the screen down a bit
+    ld c, 100
+.scrollDown:
+    ld a, [SCROLL_Y]
+    inc a 
+    ld [SCROLL_Y], a 
+    
+    call ShorterWait
+    
+    dec c 
+    ld a, c 
+    cp 0 
+    jr nz, .scrollDown
+    
+    ; Now remove the first few lines of tiles so that they don't become visible when we scroll too far down 
+    ld a, 1 
+    ld hl, BACKGROUND_MAPDATA_START
+    ld bc, 32*4
+    call mSetVRAM
+    
+    ; Scroll down a bit more 
+    ld c, 40 
+.scrollDown2:
+    ld a, [SCROLL_Y]
+    inc a 
+    ld [SCROLL_Y], a 
+    
+    call ShorterWait
+    
+    dec c 
+    ld a, c 
+    cp 0 
+    jr nz, .scrollDown2
+    
+    call ShortWait
+    call ShortWait
+    call ShortWait
+    
     ; Compare player's score with high score and save new high score if it's higher 
     ld a, [LEFT_SCORE]
     ld b, a 
@@ -659,6 +727,19 @@ CheckBallOut:
 .newHighScore:
     ld a, b 
     ld [SRAM_HIGH_SCORE], a 
+    ret 
+
+ShorterWait:
+    ld b, 4 
+.wait:
+    halt 
+    nop 
+    
+    dec b 
+    ld a, b 
+    cp 0 
+    jr nz, .wait 
+    
     ret 
     
 ; Modifies AF and BC and DE  
