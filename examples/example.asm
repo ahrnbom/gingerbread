@@ -53,37 +53,6 @@ ENDM
     
 SECTION "StartOfGameCode",ROM0    
 begin: ; GingerBread assumes that the label "begin" is where the game should start
-    nop 
-    di
-    
-    ; Initialize stack pointer
-    ld	sp, $ffff 
-    
-    ; Initialize display
-    call StopLCD
-    call initdma
-    
-    ld	a, IEF_VBLANK ; We only want vblank interrupts (for updating sprites)
-    ld	[rIE],a 
-    
-    ei
-    
-    ; Set default palettes
-    ld a, %11100100
-    ld [BG_PALETTE], a
-    ld [SPRITE_PALETTE_1], a
-    ld [SPRITE_PALETTE_2], a 
-    
-    ; Reset sprites
-    ld   hl, SPRITES_START
-    ld   bc, SPRITES_LENGTH
-    xor a 
-    call mSet
-    
-    ; Set background position (no scrolling)
-    xor a 
-    ld [SCROLL_X], a 
-    ld [SCROLL_Y], a 
     
     ; Load title image into VRAM
     ; We don't need VRAM-specific memory function here, because LCD is off.
@@ -657,6 +626,8 @@ CheckBallOut:
     ret 
     
 .gameOver:
+    call DrawScore 
+
     ld hl, GameOverText
     ld b, 0 ; End character 
     ld c, 0 ; Draw to background
@@ -720,8 +691,8 @@ CheckBallOut:
     
     call DisableSaveData
     
-    ; Resets the game, assuming the begin code does things like resetting RAM and initializing the stack pointer  
-    jp begin 
+    ; Resets the game  
+    jp GingerBreadBegin 
     
 ; Local function for writing high score to SRAM     
 .newHighScore:

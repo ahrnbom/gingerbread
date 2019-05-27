@@ -83,7 +83,7 @@ SCROLL_Y         EQU $FF42
 ; They see me scrollin'... They hatin'...
 
 ; Memory ranges
-TILEDATA_START              EQU $8000 ; up to $A000
+TILEDATA_START              EQU $8000 ; up to $97FF
 BACKGROUND_MAPDATA_START    EQU $9800 ; up to $9BFF
 WINDOW_MAPDATA_START        EQU $9C00 ; up to $9FFF
 
@@ -717,10 +717,10 @@ SECTION	"Serial interrupt",ROM0[$0058]
 SECTION	"p1234 interrupt",ROM0[$0060]
     reti
 
-; These are the first lines the boot loader will run. Make sure you have defined a "begin" label in your game code!
+; These are the first lines the boot loader will run. 
 SECTION	"GingerBread start",ROM0[$0100]
     nop
-    jp	begin
+    jp	GingerBreadBegin
 
     
 SECTION "GingerBread Technical stuff, DMA and stop/start LCD",ROM0    
@@ -773,3 +773,53 @@ TurnOnWindow:
 	ld	[rLCDC], a
     ret    
 
+SECTION "GingerBread boot",ROMX
+
+; This function is called right at the start of the game. Calling or jumping to this function later should be equivalent to resetting the game.
+; It resets RAM and various graphical settings.
+GingerBreadBegin:
+    nop 
+    di
+    
+    ; Initialize stack pointer
+    ld	sp, $ffff 
+    
+    ; Reset RAM 
+    ld hl, RAM_START
+    ld bc, $0FFF
+    xor a 
+    call mSet 
+    
+    ; Initialize display
+    call StopLCD
+    call initdma
+    
+    ld	a, IEF_VBLANK ; We only want vblank interrupts (for updating sprites)
+    ld	[rIE], a 
+    
+    ei
+    
+    ; Reset VRAM 
+    ld hl, TILEDATA_START
+    ld bc, $1FFF
+    xor a 
+    call mSet 
+    
+    ; Set default palettes
+    ld a, %11100100
+    ld [BG_PALETTE], a
+    ld [SPRITE_PALETTE_1], a
+    ld [SPRITE_PALETTE_2], a 
+    
+    ; Reset sprites
+    ld   hl, SPRITES_START
+    ld   bc, SPRITES_LENGTH
+    xor a 
+    call mSet
+    
+    ; Set background position (no scrolling)
+    xor a 
+    ld [SCROLL_X], a 
+    ld [SCROLL_Y], a 
+
+    jp begin ; GingerBread assumes that your game has this label somewhere where your own code should start 
