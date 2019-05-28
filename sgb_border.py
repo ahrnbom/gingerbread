@@ -60,3 +60,35 @@ print("Unique tiles used: {}".format(len(tile_data)))
 
 assert(len(tile_map) == 32*32) # Otherwise the image is of incorrect size or something went wrong 
 
+# Pad tile data with zeros
+while len(tile_data) < 256:
+    tile_data.append( [0]*64 )
+
+s = 'SECTION "SGB Border",ROMX'
+
+def newline(s):
+    return s + '\n'
+
+s = newline(s)
+s = newline(s+'SGB_VRAM_TILEDATA1:')
+
+for i_tile in range(128):
+    tile = tile_data[i_tile]
+    p01, p23 = convert_to_bitplanes(tile)
+    s = newline(s+strformat(p01))
+    s = newline(s+strformat(p23))
+    
+s = newline(s)
+s = newline(s+'SGB_VRAM_TILEDATA2:')
+
+for i_tile in range(128,256):
+    tile = tile_data[i_tile]
+    p01, p23 = convert_to_bitplanes(tile)
+    s = newline(s+strformat(p01))
+    s = newline(s+strformat(p23))
+    
+def convert_to_bitplanes(tile):
+    pass
+    
+def strformat(p):
+    pass
