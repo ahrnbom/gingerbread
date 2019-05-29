@@ -69,6 +69,46 @@ s = 'SECTION "SGB Border",ROMX'
 def newline(s):
     return s + '\n'
 
+def strformat(p):
+    s = "DB"
+    for i in range(16):
+        pass
+    return s
+
+# Converts a tile to the really strange SNES bitplane format     
+def convert_to_bitplanes(tile):
+    p01 = []
+    p23 = []
+
+    for ir in range(8):
+        start = 8*ir
+        
+        row = [tile[x] for x in range(start, start+8)]
+        bincols = []
+        
+        for col in row:
+            bincol = "{0:b}".format(col)
+            
+            while len(bincol) < 4:
+                bincol = '0' + bincol 
+            
+            if len(bincol) >= 5:
+                print(col, bincol)
+            
+            bincols.append(bincol)
+        
+        p0 = [x[3] for x in bincols]
+        p1 = [x[2] for x in bincols]
+        p2 = [x[1] for x in bincols]
+        p3 = [x[0] for x in bincols]
+        
+        p01.extend(p0)
+        p01.extend(p1)
+        p23.extend(p2)
+        p23.extend(p3)
+            
+    return p01, p23 
+    
 s = newline(s)
 s = newline(s+'SGB_VRAM_TILEDATA1:')
 
@@ -87,8 +127,5 @@ for i_tile in range(128,256):
     s = newline(s+strformat(p01))
     s = newline(s+strformat(p23))
     
-def convert_to_bitplanes(tile):
-    pass
+
     
-def strformat(p):
-    pass
