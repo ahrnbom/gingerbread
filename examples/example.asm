@@ -27,6 +27,7 @@ INCLUDE "gingerbread.asm"
 SECTION "Include@banks",ROMX
 INCLUDE "images/title.inc"
 INCLUDE "images/pong.inc"
+INCLUDE "images/sgb_border.inc"
 
 
 ; Macro for copying a rectangular region into VRAM
@@ -822,3 +823,4 @@ GameLoop:
     call UpdateRightPaddle
     
     jp GameLoop 
+    

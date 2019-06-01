@@ -8,6 +8,8 @@ im_path = 'examples/images/sgb_border.png'
 im = Image.open(im_path)
 im = im.convert('RGB')
 
+outpath = 'examples/images/sgb_border.inc'
+
 # Inserts element e into list l assuming list never goes beyond a length if m, and if so, returns False.
 def max_insert(l, e, m):
     if len(l) < m:
@@ -38,7 +40,7 @@ for iy in range(0, 256, 8):
                 col = im.getpixel((block_x, block_y))
                 
                 if not col in colors:
-                    if max_insert(colors, col, 17):
+                    if max_insert(colors, col, 16):
                         pass 
                     else:
                         raise ValueError('Too many unique colors in the image')
@@ -55,8 +57,8 @@ for iy in range(0, 256, 8):
         tile_index = tile_data.index(tile)
         tile_map.append(tile_index)
 
-print("Unique colors used: {}".format(len(colors)))
-print("Unique tiles used: {}".format(len(tile_data)))
+print("Unique colors used: {} / 16".format(len(colors)))
+print("Unique tiles used: {} / 256".format(len(tile_data)))
 
 assert(len(tile_map) == 32*32) # Otherwise the image is of incorrect size or something went wrong 
 
@@ -64,15 +66,24 @@ assert(len(tile_map) == 32*32) # Otherwise the image is of incorrect size or som
 while len(tile_data) < 256:
     tile_data.append( [0]*64 )
 
+# Pad colors with zeros 
+while len(colors) < 16:
+    colors.append( (0,0,0) )
+
 s = 'SECTION "SGB Border",ROMX'
 
 def newline(s):
     return s + '\n'
 
 def strformat(p):
+    
     s = "DB"
-    for i in range(16):
-        pass
+    for i in range(0,256,8):
+        pp = p[i:i+8]
+        if pp:
+            s += " " + str(int("".join(pp), 2)) + ','
+    
+    s = s[:-1]
     return s
 
 # Converts a tile to the really strange SNES bitplane format     
@@ -126,6 +137,24 @@ for i_tile in range(128,256):
     p01, p23 = convert_to_bitplanes(tile)
     s = newline(s+strformat(p01))
     s = newline(s+strformat(p23))
-    
 
+s = newline(s)
+s = newline(s+'SGB_VRAM_TILEMAP:')
+
+for t in tile_map:
+    bint = "{0:b}".format(t)
+    
+    while len(bint) < 8:
+        bint = '0' + bint
+    
+    s = newline(s+'DB %' + bint + ', %00010000')
+
+s = newline(s)
+s = newline(s+'; Palette 4')
+
+for c in colors:
+    print(c)
+
+with open(outpath, 'w') as f:
+    f.write(s)
     
