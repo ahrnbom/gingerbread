@@ -185,6 +185,13 @@ rLY EQU $FF44
 
 rDMA  EQU $FF46
 
+; --- GingerBread RAM variables ---
+; GingerBread writes a few variables in RAM between $C000 and $C100. Let your own RAM usage start at $C100 to make sure none of your code messes with GingerBread
+SECTION "GingerBread RAM variables",WRAM0[$C000]
+RUNNING_ON_SGB: DS 1 
+RUNNING_ON_GBC: DS 1 
+
+
 ; --- Standard functions ---
 
 SECTION "GingerBreadKeypad",ROM0
@@ -701,6 +708,436 @@ ChooseSaveDataBank:
     ld [MBC5_RAMB], a 
     
     ret 
+
+; --- Super Game Boy functionality ---
+IF DEF(SGB_SUPPORT)
+
+SECTION "SGB Messages",ROMX,BANK[1]
+SGB_OUT_ADDRESS EQU $FF00
+
+SGB_SEND_ZERO   EQU %00100000
+SGB_SEND_ONE    EQU %00010000
+SGB_SEND_RESET  EQU %00000000
+SGB_SEND_NULL   EQU %00110000
+
+SGB_FREEZE:
+DB %10111001    ; MASK_EN command, length one
+DB 1            ; Freeze current image
+DB 0
+DB 0 
+DB 0 
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0 
+
+SGB_UNFREEZE:   
+DB %10111001    ; MASK_EN command, length one
+DB 0            ; Unfreeze
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0 
+
+SGB_MLTREQ1:
+DB %10001001
+DB 0 
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0  
+
+SGB_MLTREQ2:
+DB %10001001
+DB 1
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0
+DB 0  
+DB 0  
+
+SGB_VRAMTRANS_TILEDATA1:
+DB %10011001	; CHR_TRN, length one
+DB 0 			; lower tiles (we can have another set of 128 tiles by setting this to one)
+DB 0
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0  
+DB 0  
+
+SGB_VRAMTRANS_TILEDATA2:
+DB %10011001	; CHR_TRN, length one
+DB 1 			; upper tiles 
+DB 0
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0  
+DB 0 
+
+SGB_VRAMTRANS_TILEMAP:
+DB %10100001	; PCT_TRN, length one
+DB 0 			
+DB 0
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0 
+DB 0  
+DB 0  
+
+SGB_INIT1:
+DB $79,$5D,$08,$00,$0B,$8C,$D0,$F4,$60,$00,$00,$00,$00,$00,$00,$00
+SGB_INIT2:
+DB $79,$52,$08,$00,$0B,$A9,$E7,$9F,$01,$C0,$7E,$E8,$E8,$E8,$E8,$E0
+SGB_INIT3:
+DB $79,$47,$08,$00,$0B,$C4,$D0,$16,$A5,$CB,$C9,$05,$D0,$10,$A2,$28
+SGB_INIT4:
+DB $79,$3C,$08,$00,$0B,$F0,$12,$A5,$C9,$C9,$C8,$D0,$1C,$A5,$CA,$C9
+SGB_INIT5:
+DB $79,$31,$08,$00,$0B,$0C,$A5,$CA,$C9,$7E,$D0,$06,$A5,$CB,$C9,$7E
+SGB_INIT6:
+DB $79,$26,$08,$00,$0B,$39,$CD,$48,$0C,$D0,$34,$A5,$C9,$C9,$80,$D0
+SGB_INIT7:
+DB $79,$1B,$08,$00,$0B,$EA,$EA,$EA,$EA,$EA,$A9,$01,$CD,$4F,$0C,$D0
+SGB_INIT8:
+DB $79,$10,$08,$00,$0B,$4C,$20,$08,$EA,$EA,$EA,$EA,$EA,$60,$EA,$EA
+
+SECTION "SGB Exposed commands",ROM0 
+SGBAbsolutelyFirstInit:
+    call SGBStrangeInit
+    ret
+
+CheckIfSGB:
+    call CheckSGB
+    jr nc, .CISGB_notSGB
+    
+    ; If we get here, then we are running SGB
+    ld a, 1 
+    ld [RUNNING_ON_SGB], a 
+    jr .CISGB_end
+    
+.CISGB_notSGB
+    xor a 
+    ld [RUNNING_ON_SGB], a 
+    
+    jr .CISGB_end
+    
+.CISGB_end
+    ret
+
+SGBEarlyExit: MACRO 
+    ld a, [RUNNING_ON_SGB]
+    cp 0 
+    ret z 
+ENDM
+
+SGBStart:
+    call SGBFreeze
+    ret
+    
+SGBEnd:
+    call SGBUnfreeze
+    ret
+    
+SECTION "SGB Internal commands",ROMX,BANK[1]
+
+SGBStrangeInit:
+    ld hl, SGB_INIT1 
+    call SGBSendData
+    call SGBFinish
+    
+    ld hl, SGB_INIT2
+    call SGBSendData
+    call SGBFinish
+    
+    ld hl, SGB_INIT3 
+    call SGBSendData
+    call SGBFinish
+    
+    ld hl, SGB_INIT4 
+    call SGBSendData
+    call SGBFinish
+    
+    ld hl, SGB_INIT5
+    call SGBSendData
+    call SGBFinish
+    
+    ld hl, SGB_INIT6 
+    call SGBSendData
+    call SGBFinish
+    
+    ld hl, SGB_INIT7 
+    call SGBSendData
+    call SGBFinish
+    
+    ld hl, SGB_INIT8 
+    call SGBSendData
+    call SGBFinish
+    
+    ret 
+
+SGBBorderTransferMacro: MACRO
+    di
+    call StopLCD
+	
+    ld hl, \1
+    ld de, TILEDATA_START
+    ld bc, 4096
+    call mCopyVRAM
+
+    ld hl, \3
+    ld de, BACKGROUND_MAPDATA_START
+    ld bc, 32*32
+    call mVRAM
+    
+    call StartLCD
+   
+    halt
+    
+    ld hl, \2
+    call SGBSendData
+    call SGBFinish
+
+    ei 
+    
+REPT 5	
+    halt
+ENDR	
+
+ENDM
+
+SGBFreeze:
+    ld hl, SGB_FREEZE
+    call SGBSendData
+    call SGBFinish
+    ret 
+    
+SGBUnfreeze:
+    ld hl, SGB_UNFREEZE
+    call SGBSendData
+    call SGBFinish
+    ret
+
+; Input: HL - address to first byte to send
+SGBSendData:
+    di 
+    ; Register use: 
+    ; B - Byte currently sending
+    ; C - Total number of bytes to send 
+    ; D - Number of bits sent of current byte 
+
+    ld a, [hl]
+    ld b, a 
+    
+    ; Each packet should send 16 bytes 
+    ld c, 16
+    
+    xor a 
+    ld d, a 
+    
+    ; Prepare SGB for listening 
+    ld a, SGB_SEND_RESET
+    ld [SGB_OUT_ADDRESS], a 
+    
+    ld a, SGB_SEND_NULL
+    ld [SGB_OUT_ADDRESS], a 
+     
+SGBSendBit:
+    inc d 
+    ld a, d 
+    cp 9 
+    jr z, SGBEndOfByte
+
+    ld a, b 
+    and %00000001
+    cp 0 
+    jr z, SGBSendZeroBit
+    
+    ; Send a ONE bit here 
+    ld a, SGB_SEND_ONE
+    ld [SGB_OUT_ADDRESS], a 
+    jr SGBSendBitEnd
+    
+SGBSendZeroBit:
+    ld a, SGB_SEND_ZERO
+    ld [SGB_OUT_ADDRESS], a 
+    
+SGBSendBitEnd:
+    ; Both P14 and P15 should be HIGH in between sent bits 
+    ld a, SGB_SEND_NULL 
+    ld [SGB_OUT_ADDRESS], a 
+        
+    ld a, b 
+    sra a 
+    and %01111111
+    ld b, a 
+    
+    jr SGBSendBit
+    
+SGBEndOfByte:
+    dec c 
+    ld a, c 
+    cp 0 
+    jr z, SGBFinalEnd
+    
+    ; If there are still bytes to send, we get here 
+    inc hl 
+    ld a, [hl]
+    ld b, a 
+    
+    xor a 
+    ld d, a 
+    
+    jr SGBSendBit
+    
+SGBFinalEnd:    
+    ret 
+    
+SGBFinish:
+    ld a, SGB_SEND_ZERO
+    ld [SGB_OUT_ADDRESS], a 
+    
+    ld a, SGB_SEND_NULL
+    ld [SGB_OUT_ADDRESS], a
+    
+    ei
+    call Wait7000
+    ret 
+    
+Wait7000:
+    ld de, 7000 ; Each loop takes 9 cycles so this routine actually waits 63000 cycles.
+.loop
+	nop
+	nop
+	nop
+	dec de
+	ld a, d
+	or e
+	jr nz, .loop
+	ret
+    
+CheckSGB:
+; Returns whether the game is running on an SGB in carry.
+	ld hl, SGB_MLTREQ2
+	call SGBSendData
+	call SGBFinish
+	di
+	ld a, 1
+	ld [$FFF9], a
+	ei
+	call Wait7000
+	ld a, [SGB_OUT_ADDRESS]
+	and $3
+	cp $3
+	jr nz, .isSGB
+	ld a, $20
+	ld [SGB_OUT_ADDRESS], a
+	ld a, [SGB_OUT_ADDRESS]
+	ld a, [SGB_OUT_ADDRESS]
+	call Wait7000
+	call Wait7000
+	ld a, $30
+	ld [SGB_OUT_ADDRESS], a
+	call Wait7000
+	call Wait7000
+	ld a, $10
+	ld [SGB_OUT_ADDRESS], a
+	ld a, [SGB_OUT_ADDRESS]
+	ld a, [SGB_OUT_ADDRESS]
+	ld a, [SGB_OUT_ADDRESS]
+	ld a, [SGB_OUT_ADDRESS]
+	ld a, [SGB_OUT_ADDRESS]
+	ld a, [SGB_OUT_ADDRESS]
+	call Wait7000
+	call Wait7000
+	ld a, $30
+	ld [SGB_OUT_ADDRESS], a
+	ld a, [SGB_OUT_ADDRESS]
+	ld a, [SGB_OUT_ADDRESS]
+	ld a, [SGB_OUT_ADDRESS]
+	call Wait7000
+	call Wait7000
+	ld a, [SGB_OUT_ADDRESS]
+	and $3
+	cp $3
+	jr nz, .isSGB
+	call SendMltReq1Packet
+	and a
+	ret
+.isSGB
+	call SendMltReq1Packet
+	scf
+	ret    
+
+SendMltReq1Packet:
+    ld hl, SGB_MLTREQ1
+    call SGBSendData
+    call SGBFinish
+    jp Wait7000
+
+ENDC ; End of Super Game Boy functionality 
+
     
 ; --- Boot process and interrupts ---
 ; Feel free to change interrupts if your game should use them
@@ -823,3 +1260,5 @@ GingerBreadBegin:
     ld [SCROLL_Y], a 
 
     jp begin ; GingerBread assumes that your game has this label somewhere where your own code should start 
+
+    
