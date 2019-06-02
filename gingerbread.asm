@@ -187,7 +187,8 @@ rDMA  EQU $FF46
 
 ; --- GingerBread RAM variables ---
 ; GingerBread writes a few variables in RAM between $C000 and $C100. Let your own RAM usage start at $C100 to make sure none of your code messes with GingerBread
-SECTION "GingerBread RAM variables",WRAM0[$C000]
+; $C000 - $C0A0 are used for sprites, so these start after that
+SECTION "GingerBread RAM variables",WRAM0[$C0A1]
 RUNNING_ON_SGB: DS 1 
 RUNNING_ON_GBC: DS 1 
 
@@ -949,7 +950,7 @@ SGBBorderTransferMacro: MACRO
     ld hl, \3
     ld de, BACKGROUND_MAPDATA_START
     ld bc, 32*32
-    call mVRAM
+    call mCopyVRAM
     
     call StartLCD
    
@@ -1222,10 +1223,15 @@ GingerBreadBegin:
     ld	sp, $ffff 
     
     ; Reset RAM 
-    ld hl, RAM_START
+    ld hl, USER_RAM_START
     ld bc, $0FFF
     xor a 
     call mSet 
+    
+IF DEF(SGB_SUPPORT)
+    call SGBAbsolutelyFirstInit
+    call CheckIfSGB
+ENDC    
     
     ; Initialize display
     call StopLCD

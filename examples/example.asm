@@ -55,10 +55,10 @@ ENDM
 SECTION "StartOfGameCode",ROM0    
 begin: ; GingerBread assumes that the label "begin" is where the game should start
     
+    call SetupSGBBorder
+    
     ; Load title image into VRAM
     ; We don't need VRAM-specific memory function here, because LCD is off.
-    ld a, BANK(title_tile_data)
-    ld [ROM_BANK_SWITCH], a
     
     ld hl, title_tile_data
     ld de, TILEDATA_START
@@ -79,7 +79,7 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     jp TitleLoop
     
 ; Definition of some RAM variables 
-SECTION "RAM variables",WRAM0[$C100]
+SECTION "RAM variables",WRAM0[USER_RAM_START]
 BALL_POSITION: DS 2
 BALL_DIRECTION: DS 2 
 LEFT_PADDLE_POSITION: DS 2
@@ -89,7 +89,7 @@ RIGHT_PADDLE_DIRECTION: DS 1
 LEFT_SCORE: DS 1
 RIGHT_SCORE: DS 1 
 
-SECTION "SRAM variables",SRAM[$A000]
+SECTION "SRAM variables",SRAM[SAVEDATA_START]
 SRAM_INTEGRITY_CHECK: DS 2 ; Two bytes that should read $1337; if they do not, the save is considered corrupt or unitialized
 SRAM_HIGH_SCORE: DS 1 
 
@@ -152,6 +152,20 @@ DB %01010101 ; Data to be written to SOUND_CH4_POLY
 DB %11000110 ; Data to be written to SOUND_CH4_OPTIONS
 
 SECTION "Pong game code",ROM0
+SetupSGBBorder:
+	SGBEarlyExit ; We wouldn't want those nasty VRAM artifacts, would we?
+	
+    ;call InitPalettes
+    
+	call SGBStart
+	
+    SGBBorderTransferMacro SGB_VRAM_TILEDATA1, SGB_VRAMTRANS_TILEDATA1, SGB_VRAMTRANS_GBTILEMAP
+    SGBBorderTransferMacro SGB_VRAM_TILEDATA2, SGB_VRAMTRANS_TILEDATA2, SGB_VRAMTRANS_GBTILEMAP
+    SGBBorderTransferMacro SGB_VRAM_TILEMAP, SGB_VRAMTRANS_TILEMAP, SGB_VRAMTRANS_GBTILEMAP   
+    
+	call SGBEnd
+	ret
+
 SetupHighScore:
     ; For this game, we only ever use one save data bank, the first one (0)
     xor a 
