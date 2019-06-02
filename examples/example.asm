@@ -7,11 +7,11 @@ SECTION "Includes@home",ROM0
 ; Max 15 characters, should be uppercase ASCII
 GAME_NAME EQUS "GBEXAMPLE " 
 
-; Include SGB support in GingerBread. This makes the GingerBread library take up a bit more space on ROM0.
+; Include SGB support in GingerBread. This makes the GingerBread library take up a bit more space on ROM0. To remove support, comment out this line (don't set it to 0)
 SGB_SUPPORT EQU 1 
 
-; Include GBC support in GingerBread. This makes the GingerBread library take up slightly more space on ROM0.
-GBC_SUPPORT EQU 1
+; Include GBC support in GingerBread. This makes the GingerBread library take up slightly more space on ROM0. To remove support, comment out this line (don't set it to 0)
+;GBC_SUPPORT EQU 1
 
 ; Set the size of the ROM file here. 0 means 32 kB, 1 means 64 kB, 2 means 128 kB and so on.
 ROM_SIZE EQU 0 
@@ -55,7 +55,7 @@ ENDM
 SECTION "StartOfGameCode",ROM0    
 begin: ; GingerBread assumes that the label "begin" is where the game should start
     
-    call SetupSGBBorder
+    call SetupSGB
     
     ; Load title image into VRAM
     ; We don't need VRAM-specific memory function here, because LCD is off.
@@ -152,8 +152,8 @@ DB %01010101 ; Data to be written to SOUND_CH4_POLY
 DB %11000110 ; Data to be written to SOUND_CH4_OPTIONS
 
 SECTION "Pong game code",ROM0
-SetupSGBBorder:
-	SGBEarlyExit ; We wouldn't want those nasty VRAM artifacts, would we?
+SetupSGB:
+	SGBEarlyExit ; Without this, garbage would be visible on screen briefly when booting on a GB/GBC
 	
     ;call InitPalettes
     
