@@ -237,7 +237,14 @@ for t,p in zip(tile_map, palette_map):
     while len(bint) < 8:
         bint = '0' + bint
     
-    s2 = "%00010000"
+    if p == 0:
+        s2 = "%00010000"
+    elif p == 1:
+        s2 = "%00010100"
+    elif p == 2:
+        s2 = "%00011000"
+    elif p == 3:
+        s2 = "%00011100"
     
     s = newline(s+'DB %' + bint + ', ' + s2)
 
