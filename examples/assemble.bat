@@ -1,5 +1,14 @@
 @echo off
 
+if exist images/sgb_border.inc (
+echo Not building SGB border since it exists...
+) else (
+echo Building SGB border...
+cd ..
+python sgb_border.py examples/images/sgb_border.png examples/images/sgb_border.inc
+cd examples
+)
+
 copy ..\gingerbread.asm .
 
 set name="example"
