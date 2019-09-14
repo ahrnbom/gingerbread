@@ -152,8 +152,8 @@ DB %01010101 ; Data to be written to SOUND_CH4_POLY
 DB %11000110 ; Data to be written to SOUND_CH4_OPTIONS
 
 SECTION "SGB Palette data",ROMX,BANK[1]
-SGBPalettes01:
-DB %00000001 ; Palettes 0-1 command, length one
+SGBPalettes01: ; Specifies the colors of palettes 0 and 1 
+DB %00000001 ; PAL01 command (%00000), length one (%001)
 DB %11111111 ; Color 0 (for all palettes), %gggrrrrr
 DB %01111111 ; Color 0 (for all palettes), %0bbbbbgg
 DB %11100001 ; Color 1, Palette 0, %gggrrrrr
@@ -170,6 +170,35 @@ DB %00000000 ; Color 3, Palette 1, %gggrrrrr
 DB %00000000 ; Color 3, Palette 1, %0bbbbbgg
 DB 0         ; Not used 
 
+SGBPalettes23: ; Specifies the colors of palettes 2 and 3
+DB %00001001 ; PAL23 command (%00001), length one (%001)
+DB %11111111 ; Color 0 (for all palettes), %gggrrrrr
+DB %01111111 ; Color 0 (for all palettes), %0bbbbbgg
+DB %10110101 ; Color 1, Palette 2, %gggrrrrr
+DB %01010110 ; Color 1, Palette 2, %0bbbbbgg
+DB %11100111 ; Color 2, Palette 2, %gggrrrrr
+DB %00011100 ; Color 2, Palette 2, %0bbbbbgg
+DB %00100001 ; Color 3, Palette 2, %gggrrrrr
+DB %00000100 ; Color 3, Palette 2, %0bbbbbgg
+DB 0,0,0,0,0,0 ; Colors 1-3, Palette 3 (which isn't used in this example game)
+
+SGBPal2Everywhere: ; Tells the SGB to use Palette 2 everywhere (used for title and game over)
+DB %00100001 ; ATTR_BLK (%00100), length one (%001)
+DB 1         ; Number of blocks we send
+DB %00000100 ; Set the value "outside" the block (doing this with a small block means setting the entire screen)
+DB %00101010 ; Which palettes to set inside (%10), on the border (%10) and outside (%10)
+DB 0         ; X1 coordinate
+DB 0         ; Y1 coordinate 
+DB 0         ; X2 coordinate 
+DB 0         ; Y2 coordinate 
+DB 0,0,0,0,0,0,0,0 ; Zero-padding
+
+SGBPal01Div: ; Tells the SGB to draw the top horizontal line with palette 1, and palette 0 everywhere else  
+DB %00110001 ; ATTR_DIV command (%00110), length one (%001)
+DB %01010100 ; Zero-padding (%0), horizontal split (%1), palette on the line (%01), palette above the line (%01), palette below the line (%00)
+DB 0         ; Y-coordinate 
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0 ; Zero-padding
+
 SECTION "Pong game code",ROM0
 SetupSGB:
 	SGBEarlyExit ; Without this, garbage would be visible on screen briefly when booting on a GB/GBC
@@ -184,10 +213,25 @@ SetupSGB:
     
 	call SGBUnfreeze
 	ret
+    
+SetupSGBGameplay:
+    ; Sets up palette usage which should be displayed during gameplay
+    SGBEarlyExit
+    ld hl, SGBPal01Div
+    call SGBSendData
+    
+    ret 
 
 InitSGBPalettes:
     ld hl, SGBPalettes01
     call SGBSendData
+    
+    ld hl, SGBPalettes23
+    call SGBSendData
+    
+    ld hl, SGBPal2Everywhere
+    call SGBSendData
+    
     ret 
     
 SetupHighScore:
@@ -396,8 +440,10 @@ TransitionToGame:
     ; Draw the pong map tiles 
     CopyRegionToVRAM 18, 20, pong_map_data, BACKGROUND_MAPDATA_START
     
-    ; Now fade back to normal palette
+    ; On SGB, this is the right time to switch to the gameplay palettes
+    call SetupSGBGameplay
     
+    ; Now fade back to normal palette
     ld a, %11111110
     ld [BG_PALETTE], a
     
