@@ -892,49 +892,33 @@ SGBEarlyExit: MACRO
     cp 0 
     ret z 
 ENDM
-
-SGBStart:
-    call SGBFreeze
-    ret
-    
-SGBEnd:
-    call SGBUnfreeze
-    ret
     
 SECTION "SGB Internal commands",ROMX,BANK[1]
 
 SGBStrangeInit:
     ld hl, SGB_INIT1 
     call SGBSendData
-    call SGBFinish
     
     ld hl, SGB_INIT2
     call SGBSendData
-    call SGBFinish
     
     ld hl, SGB_INIT3 
     call SGBSendData
-    call SGBFinish
     
     ld hl, SGB_INIT4 
     call SGBSendData
-    call SGBFinish
     
     ld hl, SGB_INIT5
     call SGBSendData
-    call SGBFinish
     
     ld hl, SGB_INIT6 
     call SGBSendData
-    call SGBFinish
     
     ld hl, SGB_INIT7 
     call SGBSendData
-    call SGBFinish
     
     ld hl, SGB_INIT8 
     call SGBSendData
-    call SGBFinish
     
     ret 
 
@@ -958,7 +942,6 @@ SGBBorderTransferMacro: MACRO
     
     ld hl, \2
     call SGBSendData
-    call SGBFinish
 
     ei 
     
@@ -971,13 +954,11 @@ ENDM
 SGBFreeze:
     ld hl, SGB_FREEZE
     call SGBSendData
-    call SGBFinish
     ret 
     
 SGBUnfreeze:
     ld hl, SGB_UNFREEZE
     call SGBSendData
-    call SGBFinish
     ret
 
 ; Input: HL - address to first byte to send
@@ -1052,7 +1033,8 @@ SGBEndOfByte:
     
     jr SGBSendBit
     
-SGBFinalEnd:    
+SGBFinalEnd:
+    call SGBFinish 
     ret 
     
 SGBFinish:
@@ -1082,7 +1064,6 @@ CheckSGB:
 ; Returns whether the game is running on an SGB in carry.
 	ld hl, SGB_MLTREQ2
 	call SGBSendData
-	call SGBFinish
 	di
 	ld a, 1
 	ld [$FFF9], a
@@ -1134,7 +1115,6 @@ CheckSGB:
 SendMltReq1Packet:
     ld hl, SGB_MLTREQ1
     call SGBSendData
-    call SGBFinish
     jp Wait7000
 
 ENDC ; End of Super Game Boy functionality 

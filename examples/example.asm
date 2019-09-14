@@ -129,7 +129,7 @@ CHARMAP "Z",$7D
 CHARMAP "<happy>",$7E
 CHARMAP "<sad>",$7F
 CHARMAP "<heart>",$80
-CHARMAP " ",$81
+CHARMAP " ",$01
 CHARMAP "<end>",$0 ; Choose some non-character tile that's easy to remember 
 
 ; Text definitions 
@@ -151,21 +151,45 @@ DB %11110111 ; Data to be written to SOUND_CH4_ENVELOPE
 DB %01010101 ; Data to be written to SOUND_CH4_POLY 
 DB %11000110 ; Data to be written to SOUND_CH4_OPTIONS
 
+SECTION "SGB Palette data",ROMX,BANK[1]
+SGBPalettes01:
+DB %00000001 ; Palettes 0-1 command, length one
+DB %11111111 ; Color 0 (for all palettes), %gggrrrrr
+DB %01111111 ; Color 0 (for all palettes), %0bbbbbgg
+DB %11100001 ; Color 1, Palette 0, %gggrrrrr
+DB %01111001 ; Color 1, Palette 0, %0bbbbbgg
+DB %01100001 ; Color 2, Palette 0, %gggrrrrr
+DB %00110100 ; Color 2, Palette 0, %0bbbbbgg
+DB %00000000 ; Color 3, Palette 0, %gggrrrrr
+DB %00000000 ; Color 3, Palette 0, %0bbbbbgg
+DB %11100111 ; Color 1, Palette 1, %gggrrrrr
+DB %01111001 ; Color 1, Palette 1, %0bbbbbgg
+DB %11100001 ; Color 2, Palette 1, %gggrrrrr
+DB %00011101 ; Color 2, Palette 1, %0bbbbbgg
+DB %00000000 ; Color 3, Palette 1, %gggrrrrr
+DB %00000000 ; Color 3, Palette 1, %0bbbbbgg
+DB 0         ; Not used 
+
 SECTION "Pong game code",ROM0
 SetupSGB:
 	SGBEarlyExit ; Without this, garbage would be visible on screen briefly when booting on a GB/GBC
 	
-    ;call InitPalettes
+    call InitSGBPalettes
     
-	call SGBStart
+	call SGBFreeze ; To prevent "garbage" from being visible on screen 
 	
     SGBBorderTransferMacro SGB_VRAM_TILEDATA1, SGB_VRAMTRANS_TILEDATA1, SGB_VRAMTRANS_GBTILEMAP
     SGBBorderTransferMacro SGB_VRAM_TILEDATA2, SGB_VRAMTRANS_TILEDATA2, SGB_VRAMTRANS_GBTILEMAP
     SGBBorderTransferMacro SGB_VRAM_TILEMAP, SGB_VRAMTRANS_TILEMAP, SGB_VRAMTRANS_GBTILEMAP   
     
-	call SGBEnd
+	call SGBUnfreeze
 	ret
 
+InitSGBPalettes:
+    ld hl, SGBPalettes01
+    call SGBSendData
+    ret 
+    
 SetupHighScore:
     ; For this game, we only ever use one save data bank, the first one (0)
     xor a 
