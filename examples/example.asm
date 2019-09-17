@@ -205,7 +205,7 @@ GBCBackgroundPalettes:
 DB %11111111 ; Color 0, palette 0, %gggrrrrr
 DB %01111111 ; Color 0, palette 0, %0bbbbbgg
 DB %11100011 ; Color 1, palette 0, %gggrrrrr
-DB %00111111 ; Color 1, palette 0, %0bbbbbgg
+DB %00011111 ; Color 1, palette 0, %0bbbbbgg
 DB %11100001 ; Color 2, palette 0, %gggrrrrr
 DB %00001001 ; Color 2, palette 0, %0bbbbbgg
 DB %00000000 ; Color 3, palette 0, %gggrrrrr

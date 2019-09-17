@@ -732,7 +732,7 @@ ENDM
 ; B - number of bytes to write 
 GBCApplyBackgroundPalettes:
     ; We use auto-increment for simplicity
-    and %10000000
+    or %10000000
     
     ld [GBC_BG_PALETTE_INDEX], a 
     
@@ -755,7 +755,7 @@ GBCApplyBackgroundPalettes:
 ; B - number of bytes to write    
 GBCApplySpritePalettes:
     ; We use auto-increment for simplicity
-    and %10000000
+    or %10000000
     
     ld [GBC_SPRITE_PALETTE_INDEX], a 
     
