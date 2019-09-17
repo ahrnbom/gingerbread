@@ -11,7 +11,7 @@ GAME_NAME EQUS "GBEXAMPLE "
 SGB_SUPPORT EQU 1 
 
 ; Include GBC support in GingerBread. This makes the GingerBread library take up slightly more space on ROM0. To remove support, comment out this line (don't set it to 0)
-;GBC_SUPPORT EQU 1
+GBC_SUPPORT EQU 1
 
 ; Set the size of the ROM file here. 0 means 32 kB, 1 means 64 kB, 2 means 128 kB and so on.
 ROM_SIZE EQU 0 
@@ -56,6 +56,7 @@ SECTION "StartOfGameCode",ROM0
 begin: ; GingerBread assumes that the label "begin" is where the game should start
     
     call SetupSGB
+    call SetupGBC
     
     ; Load title image into VRAM
     ; We don't need VRAM-specific memory function here, because LCD is off.
@@ -199,7 +200,36 @@ DB %01010100 ; Zero-padding (%0), horizontal split (%1), palette on the line (%0
 DB 0         ; Y-coordinate 
 DB 0,0,0,0,0,0,0,0,0,0,0,0,0 ; Zero-padding
 
+SECTION "GBC Palette data",ROM0
+GBCBackgroundPalettes:
+DB %11111111 ; Color 0, palette 0, %gggrrrrr
+DB %01111111 ; Color 0, palette 0, %0bbbbbgg
+DB %11100011 ; Color 1, palette 0, %gggrrrrr
+DB %00111111 ; Color 1, palette 0, %0bbbbbgg
+DB %11100001 ; Color 2, palette 0, %gggrrrrr
+DB %00001001 ; Color 2, palette 0, %0bbbbbgg
+DB %00000000 ; Color 3, palette 0, %gggrrrrr
+DB %00000000 ; Color 3, palette 0, %0bbbbbgg
+DB %11111111 ; Color 0, palette 1, %gggrrrrr
+DB %01011110 ; Color 0, palette 1, %0bbbbbgg 
+DB %01111111 ; Color 1, palette 1, %gggrrrrr
+DB %00001100 ; Color 1, palette 1, %0bbbbbgg
+DB %01001111 ; Color 2, palette 1, %gggrrrrr
+DB %00000100 ; Color 2, palette 1, %0bbbbbgg
+DB %00000011 ; Color 3, palette 1, %gggrrrrr
+DB %00000000 ; Color 3, palette 1, %0bbbbbgg
+
 SECTION "Pong game code",ROM0
+SetupGBC:
+    GBCEarlyExit ; No need to execute pointless code if we're not running on GBC 
+    
+    ld hl, GBCBackgroundPalettes
+    xor a ; Start at color 0, palette 0 
+    ld b, 16 ; We have 16 bytes to write
+    call GBCApplyBackgroundPalettes
+
+    ret 
+    
 SetupSGB:
 	SGBEarlyExit ; Without this, garbage would be visible on screen briefly when booting on a GB/GBC
 	

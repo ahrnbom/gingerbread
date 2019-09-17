@@ -77,6 +77,12 @@ BG_PALETTE       EQU $FF47
 SPRITE_PALETTE_1 EQU $FF48
 SPRITE_PALETTE_2 EQU $FF49
 
+; GBC palettes 
+GBC_BG_PALETTE_INDEX      EQU $FF68
+GBC_BG_PALETTE            EQU $FF69
+GBC_SPRITE_PALETTE_INDEX EQU $FF6A
+GBC_SPRITE_PALETTE       EQU $FF6B
+
 ; Scrolling: Set these to nonzero values to scroll the screen across the 256x256 rendering surface
 SCROLL_X         EQU $FF43
 SCROLL_Y         EQU $FF42
@@ -710,6 +716,66 @@ ChooseSaveDataBank:
     
     ret 
 
+; --- Game Boy Color functionality ---
+IF DEF(GBC_SUPPORT)
+
+SECTION "GBC commands",ROM0
+
+GBCEarlyExit: MACRO
+    ld a, [RUNNING_ON_GBC]
+    cp 0 
+    ret z
+ENDM
+
+; HL - address pointing to a table of colors 
+; A - palette byte to start writing at (each palette is eight bytes, two for each of the four colors, and there are eight palettes)
+; B - number of bytes to write 
+GBCApplyBackgroundPalettes:
+    ; We use auto-increment for simplicity
+    and %10000000
+    
+    ld [GBC_BG_PALETTE_INDEX], a 
+    
+.writeByte:   
+    
+    ld a, [hl]
+    ld [GBC_BG_PALETTE], a 
+    inc hl 
+    
+    ; Have we finished writing?
+    dec b 
+    ld a, b 
+    cp 0 ; Is B equal to zero?
+    ret z 
+    
+    jr .writeByte ; keep going
+
+; HL - address pointing to a table of colors 
+; A - palette byte to start writing at (each palette is eight bytes, two for each of the four colors, and there are eight palettes)
+; B - number of bytes to write    
+GBCApplySpritePalettes:
+    ; We use auto-increment for simplicity
+    and %10000000
+    
+    ld [GBC_SPRITE_PALETTE_INDEX], a 
+    
+.writeByte:    
+    ld a, [hl]
+    WaitForNonBusyLCD
+    ld [GBC_SPRITE_PALETTE], a 
+    inc hl 
+    
+    ; Have we finished writing?
+    dec b 
+    ld a, b 
+    cp 0 ; Is B equal to zero?
+    ret z 
+    
+    jr .writeByte ; keep going
+
+
+ENDC ; End of GBC functionality    
+    
 ; --- Super Game Boy functionality ---
 IF DEF(SGB_SUPPORT)
 
@@ -847,6 +913,7 @@ DB 0
 DB 0  
 DB 0  
 
+; According to some sources, these commands should be sent to the SGB as an initialization. It doesn't seem mandatory though?
 SGB_INIT1:
 DB $79,$5D,$08,$00,$0B,$8C,$D0,$F4,$60,$00,$00,$00,$00,$00,$00,$00
 SGB_INIT2:
@@ -864,7 +931,7 @@ DB $79,$1B,$08,$00,$0B,$EA,$EA,$EA,$EA,$EA,$A9,$01,$CD,$4F,$0C,$D0
 SGB_INIT8:
 DB $79,$10,$08,$00,$0B,$4C,$20,$08,$EA,$EA,$EA,$EA,$EA,$60,$EA,$EA
 
-SECTION "SGB Exposed commands",ROM0 
+SECTION "SGB commands on bank0",ROM0 
 SGBAbsolutelyFirstInit:
     call SGBStrangeInit
     ret
@@ -893,7 +960,7 @@ SGBEarlyExit: MACRO
     ret z 
 ENDM
     
-SECTION "SGB Internal commands",ROMX,BANK[1]
+SECTION "SGB commands on bank1",ROMX,BANK[1]
 
 SGBStrangeInit:
     ld hl, SGB_INIT1 
@@ -1138,8 +1205,13 @@ SECTION	"p1234 interrupt",ROM0[$0060]
 ; These are the first lines the boot loader will run. 
 SECTION	"GingerBread start",ROM0[$0100]
     nop
-    jp	GingerBreadBegin
-
+    
+IF DEF(GBC_SUPPORT)
+    jp CheckIfGBC
+    ; This jumps to GingerBreadBegin
+ELSE
+    jp GingerBreadBegin
+ENDC
     
 SECTION "GingerBread Technical stuff, DMA and stop/start LCD",ROM0    
 initdma:
@@ -1193,6 +1265,23 @@ TurnOnWindow:
 
 SECTION "GingerBread boot",ROMX
 
+IF DEF(GBC_SUPPORT)
+CheckIfGBC:
+    cp $11
+    jr nz, .notGBC
+
+    ; If we get here, we are running on a GBC (or GBA)
+.isGBC:
+    ld a, 1 
+    ld [RUNNING_ON_GBC], a 
+    jr GingerBreadBegin  
+    
+.notGBC:
+    xor a 
+    ld [RUNNING_ON_GBC], a 
+    jr GingerBreadBegin  
+ENDC
+    
 ; This function is called right at the start of the game. Calling or jumping to this function later should be equivalent to resetting the game.
 ; It resets RAM and various graphical settings.
 GingerBreadBegin:
