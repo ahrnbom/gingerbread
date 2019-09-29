@@ -101,35 +101,35 @@ RIGHT_PADDLE_CHECK_FREQUENCY    equ 15 ; how many frame should pass between each
 
 SECTION "Text definitions",ROM0 
 ; Charmap definition (based on the pong.png image, and looking in the VRAM viewer after loading it in BGB helps finding the values for each character)
-CHARMAP "A",$64
-CHARMAP "B",$65
-CHARMAP "C",$66
-CHARMAP "D",$67
-CHARMAP "E",$68
-CHARMAP "F",$69
-CHARMAP "G",$6A
-CHARMAP "H",$6B
-CHARMAP "I",$6C
-CHARMAP "J",$6D
-CHARMAP "K",$6E
-CHARMAP "L",$6F
-CHARMAP "M",$70
-CHARMAP "N",$71
-CHARMAP "O",$72
-CHARMAP "P",$73
-CHARMAP "Q",$74
-CHARMAP "R",$75
-CHARMAP "S",$76
-CHARMAP "T",$77
-CHARMAP "U",$78
-CHARMAP "V",$79
-CHARMAP "W",$7A
-CHARMAP "X",$7B
-CHARMAP "Y",$7C
-CHARMAP "Z",$7D
-CHARMAP "<happy>",$7E
-CHARMAP "<sad>",$7F
-CHARMAP "<heart>",$80
+CHARMAP "A",$56
+CHARMAP "B",$57
+CHARMAP "C",$58
+CHARMAP "D",$59
+CHARMAP "E",$5A
+CHARMAP "F",$5B
+CHARMAP "G",$5C
+CHARMAP "H",$5D
+CHARMAP "I",$5E
+CHARMAP "J",$5F
+CHARMAP "K",$60
+CHARMAP "L",$61
+CHARMAP "M",$62
+CHARMAP "N",$63
+CHARMAP "O",$64
+CHARMAP "P",$65
+CHARMAP "Q",$66
+CHARMAP "R",$67
+CHARMAP "S",$68
+CHARMAP "T",$69
+CHARMAP "U",$6A
+CHARMAP "V",$6B
+CHARMAP "W",$6C
+CHARMAP "X",$6D
+CHARMAP "Y",$6E
+CHARMAP "Z",$6F
+CHARMAP "<happy>",$70
+CHARMAP "<sad>",$71
+CHARMAP "<heart>",$72
 CHARMAP " ",$01
 CHARMAP "<end>",$0 ; Choose some non-character tile that's easy to remember 
 
@@ -454,13 +454,13 @@ DrawScore:
     ; will make the code run faster 
 
     ld a, [LEFT_SCORE]
-    ld b, $5A ; Tile number of 0 
+    ld b, $4C ; Tile number of 0 
     ld c, 0 ; Write to background 
     ld de, 1 + 32*0 ; Position number (the formula is x + 32*y)
     call RenderTwoDecimalNumbersByPosition
     
     ld a, [RIGHT_SCORE]
-    ld b, $5A ; Tile number of 0
+    ld b, $4C ; Tile number of 0
     ld c, 0 ; Write to background 
     ld de, 17 + 32*0 ; Position number (the formula is x + 32*y)  
     call RenderTwoDecimalNumbersByPosition
@@ -474,7 +474,7 @@ DrawBall:
     ld [SPRITES_START], a
     ld a, [BALL_POSITION] ; X location 
     ld [SPRITES_START+1], a 
-    ld a, $56 ; Tile number 
+    ld a, $48 ; Tile number 
     ld [SPRITES_START+2], a
     xor a ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+3], a 
@@ -485,7 +485,7 @@ DrawBall:
     ld a, [BALL_POSITION] ; X location
     add 8 ; right part of ball should be 8 pixels to the right     
     ld [SPRITES_START+5], a 
-    ld a, $58 ; Tile number 
+    ld a, $4A ; Tile number 
     ld [SPRITES_START+6], a
     xor a ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+7], a     
@@ -499,7 +499,7 @@ DrawLeftPaddle:
     ld [SPRITES_START+8], a
     ld a, [LEFT_PADDLE_POSITION] ; X
     ld [SPRITES_START+9], a
-    ld a, $52 ; Top and top-middle paddle tiles
+    ld a, $44 ; Top and top-middle paddle tiles
     ld [SPRITES_START+10], a 
     ld a, 1 ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+11], a
@@ -510,7 +510,7 @@ DrawLeftPaddle:
     ld [SPRITES_START+12], a 
     ld a, [LEFT_PADDLE_POSITION] ; X
     ld [SPRITES_START+13], a 
-    ld a, $54 ; Bottom-middle and bottom paddle tiles 
+    ld a, $46 ; Bottom-middle and bottom paddle tiles 
     ld [SPRITES_START+14], a 
     ld a, 1 ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+15], a 
@@ -524,7 +524,7 @@ DrawRightPaddle:
     ld [SPRITES_START+16], a
     ld a, [RIGHT_PADDLE_POSITION] ; X
     ld [SPRITES_START+17], a
-    ld a, $52 ; Top and top-middle paddle tiles
+    ld a, $44 ; Top and top-middle paddle tiles
     ld [SPRITES_START+18], a 
     ld a, 1 ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+19], a
@@ -535,7 +535,7 @@ DrawRightPaddle:
     ld [SPRITES_START+20], a 
     ld a, [RIGHT_PADDLE_POSITION] ; X
     ld [SPRITES_START+21], a 
-    ld a, $54 ; Bottom-middle and bottom paddle tiles 
+    ld a, $46 ; Bottom-middle and bottom paddle tiles 
     ld [SPRITES_START+22], a 
     ld a, 1 ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+23], a 
@@ -734,7 +734,7 @@ ReverseBallDX:
 CheckCollisionLeftPaddle:
     ; First check if the ball is far enough to the left 
     ld a, [BALL_POSITION]
-    cp 16
+    cp 17
     ret nc 
     
     ; Now check if it's far enough down 
