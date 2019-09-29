@@ -761,7 +761,7 @@ GBCApplySpritePalettes:
     
 .writeByte:    
     ld a, [hl]
-    WaitForNonBusyLCD
+    WaitForNonBusyLCDSafeA
     ld [GBC_SPRITE_PALETTE], a 
     inc hl 
     

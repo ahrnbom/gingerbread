@@ -273,6 +273,23 @@ DB %00000000 ; Color 2, palette 1, %0bbbbbgg
 DB %00000000 ; Color 3, palette 1, %gggrrrrr
 DB %00000000 ; Color 3, palette 1, %0bbbbbgg
 
+GBCSpritePalettes:
+DB %11111111 ; Color 0, palette 0, %gggrrrrr
+DB %01111111 ; Color 0, palette 0, %0bbbbbgg
+DB %11111111 ; Color 1, palette 0, %gggrrrrr
+DB %00011111 ; Color 1, palette 0, %0bbbbbgg
+DB %11111111 ; Color 2, palette 0, %gggrrrrr
+DB %00001001 ; Color 2, palette 0, %0bbbbbgg
+DB %00000000 ; Color 3, palette 0, %gggrrrrr
+DB %00000000 ; Color 3, palette 0, %0bbbbbgg
+DB %11111000 ; Color 0, palette 1, %gggrrrrr
+DB %01111111 ; Color 0, palette 1, %0bbbbbgg 
+DB %01100000 ; Color 1, palette 1, %gggrrrrr
+DB %01111100 ; Color 1, palette 1, %0bbbbbgg
+DB %00000000 ; Color 2, palette 1, %gggrrrrr
+DB %00011100 ; Color 2, palette 1, %0bbbbbgg
+DB %00000000 ; Color 3, palette 1, %gggrrrrr
+DB %00001100 ; Color 3, palette 1, %0bbbbbgg
 
 SECTION "Pong game code",ROM0
 SetupGBC:
@@ -283,6 +300,11 @@ SetupGBC:
     ld b, 16 ; We have 16 bytes to write
     call GBCApplyBackgroundPalettes
 
+    ld hl, GBCSpritePalettes
+    xor a 
+    ld b, 16 
+    call GBCApplySpritePalettes
+    
     ret 
     
 SetupSGB:
@@ -423,7 +445,7 @@ DrawBall:
     ld [SPRITES_START+1], a 
     ld a, $56 ; Tile number 
     ld [SPRITES_START+2], a
-    xor a ; Flags
+    xor a ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+3], a 
     
     ; Right part of ball
@@ -434,7 +456,7 @@ DrawBall:
     ld [SPRITES_START+5], a 
     ld a, $58 ; Tile number 
     ld [SPRITES_START+6], a
-    xor a ; Flags
+    xor a ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+7], a     
     
     ret
@@ -448,7 +470,7 @@ DrawLeftPaddle:
     ld [SPRITES_START+9], a
     ld a, $52 ; Top and top-middle paddle tiles
     ld [SPRITES_START+10], a 
-    xor a 
+    ld a, 1 ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+11], a
     
     ; Bottom of paddle
@@ -459,7 +481,7 @@ DrawLeftPaddle:
     ld [SPRITES_START+13], a 
     ld a, $54 ; Bottom-middle and bottom paddle tiles 
     ld [SPRITES_START+14], a 
-    xor a 
+    ld a, 1 ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+15], a 
     
     ret
@@ -473,7 +495,7 @@ DrawRightPaddle:
     ld [SPRITES_START+17], a
     ld a, $52 ; Top and top-middle paddle tiles
     ld [SPRITES_START+18], a 
-    xor a 
+    ld a, 1 ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+19], a
     
     ; Bottom of paddle
@@ -484,7 +506,7 @@ DrawRightPaddle:
     ld [SPRITES_START+21], a 
     ld a, $54 ; Bottom-middle and bottom paddle tiles 
     ld [SPRITES_START+22], a 
-    xor a 
+    ld a, 1 ; Flags (including GBC sprite color palette)
     ld [SPRITES_START+23], a 
     
     ret
