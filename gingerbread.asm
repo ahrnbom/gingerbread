@@ -507,10 +507,14 @@ RenderTextToLengthByPosition:
     ; Is B zero? If so we should stop 
     ld a, b 
     cp 0 
-    reti z 
+    jr z, .finish 
     
     jr .draw
 
+.finish:
+    ei 
+    ret 
+    
 ; Internal function 
 ; Converts X and Y coordinates to a single position number by the formula pos = x + 32*y 
 ; D - X position 
@@ -775,10 +779,13 @@ GBCApplySpritePalettes:
     dec b 
     ld a, b 
     cp 0 ; Is B equal to zero?
-    reti z 
+    jr z, .finish 
     
     jr .writeByte ; keep going
 
+.finish:
+    ei 
+    ret 
 
 ENDC ; End of GBC functionality    
     
