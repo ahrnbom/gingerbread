@@ -211,7 +211,7 @@ DB %00001001 ; Color 2, palette 0, %0bbbbbgg
 DB %00000000 ; Color 3, palette 0, %gggrrrrr
 DB %00000000 ; Color 3, palette 0, %0bbbbbgg
 DB %11111111 ; Color 0, palette 1, %gggrrrrr
-DB %01011110 ; Color 0, palette 1, %0bbbbbgg 
+DB %01111111 ; Color 0, palette 1, %0bbbbbgg 
 DB %01111111 ; Color 1, palette 1, %gggrrrrr
 DB %00001100 ; Color 1, palette 1, %0bbbbbgg
 DB %01001111 ; Color 2, palette 1, %gggrrrrr
@@ -228,8 +228,8 @@ DB %01100000 ; Color 2, palette 0, %gggrrrrr
 DB %00000100 ; Color 2, palette 0, %0bbbbbgg
 DB %00000000 ; Color 3, palette 0, %gggrrrrr
 DB %00000000 ; Color 3, palette 0, %0bbbbbgg
-DB %10100111 ; Color 0, palette 1, %gggrrrrr
-DB %00010100 ; Color 0, palette 1, %0bbbbbgg 
+DB %11100111 ; Color 0, palette 1, %gggrrrrr
+DB %00011100 ; Color 0, palette 1, %0bbbbbgg 
 DB %00000111 ; Color 1, palette 1, %gggrrrrr
 DB %00000000 ; Color 1, palette 1, %0bbbbbgg
 DB %00000011 ; Color 2, palette 1, %gggrrrrr
@@ -238,17 +238,17 @@ DB %00000000 ; Color 3, palette 1, %gggrrrrr
 DB %00000000 ; Color 3, palette 1, %0bbbbbgg
 
 GBCBackgroundPalettesDarker:
-DB %00100001 ; Color 0, palette 0, %gggrrrrr
-DB %00000100 ; Color 0, palette 0, %0bbbbbgg
-DB %00100000 ; Color 1, palette 0, %gggrrrrr
+DB %01000010 ; Color 0, palette 0, %gggrrrrr
+DB %00001000 ; Color 0, palette 0, %0bbbbbgg
+DB %01000000 ; Color 1, palette 0, %gggrrrrr
 DB %00000000 ; Color 1, palette 0, %0bbbbbgg
-DB %00100000 ; Color 2, palette 0, %gggrrrrr
+DB %01000000 ; Color 2, palette 0, %gggrrrrr
 DB %00000000 ; Color 2, palette 0, %0bbbbbgg
 DB %00000000 ; Color 3, palette 0, %gggrrrrr
 DB %00000000 ; Color 3, palette 0, %0bbbbbgg
-DB %00100001 ; Color 0, palette 1, %gggrrrrr
-DB %00000100 ; Color 0, palette 1, %0bbbbbgg 
-DB %00000001 ; Color 1, palette 1, %gggrrrrr
+DB %01000010 ; Color 0, palette 1, %gggrrrrr
+DB %00001000 ; Color 0, palette 1, %0bbbbbgg 
+DB %00000010 ; Color 1, palette 1, %gggrrrrr
 DB %00000000 ; Color 1, palette 1, %0bbbbbgg
 DB %00000000 ; Color 2, palette 1, %gggrrrrr
 DB %00000000 ; Color 2, palette 1, %0bbbbbgg
@@ -291,6 +291,26 @@ DB %00011100 ; Color 2, palette 1, %0bbbbbgg
 DB %00000000 ; Color 3, palette 1, %gggrrrrr
 DB %00001100 ; Color 3, palette 1, %0bbbbbgg
 
+GBCPaletteMap:
+DB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
 SECTION "Pong game code",ROM0
 SetupGBC:
     GBCEarlyExit ; No need to execute pointless code if we're not running on GBC 
@@ -304,6 +324,17 @@ SetupGBC:
     xor a 
     ld b, 16 
     call GBCApplySpritePalettes
+    
+    ; Switch to VRAM bank 1 to write the palette map (which palette to use at which tile)
+    ld a, 1
+    ld [GBC_VRAM_BANK_SWITCH], a 
+    
+    ; Copy the palette map onto VRAM (where the tile data usually is)
+    CopyRegionToVRAM 18, 20, GBCPaletteMap, BACKGROUND_MAPDATA_START
+    
+    ; Change the VRAM bank back
+    xor a 
+    ld [GBC_VRAM_BANK_SWITCH], a 
     
     ret 
     

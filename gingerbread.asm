@@ -83,6 +83,8 @@ GBC_BG_PALETTE            EQU $FF69
 GBC_SPRITE_PALETTE_INDEX EQU $FF6A
 GBC_SPRITE_PALETTE       EQU $FF6B
 
+GBC_VRAM_BANK_SWITCH    EQU $FF4F
+
 ; Scrolling: Set these to nonzero values to scroll the screen across the 256x256 rendering surface
 SCROLL_X         EQU $FF43
 SCROLL_Y         EQU $FF42
