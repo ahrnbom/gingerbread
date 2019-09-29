@@ -59,12 +59,11 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     call SetupGBC
     
     ; Load title image into VRAM
-    ; We don't need VRAM-specific memory function here, because LCD is off.
     
     ld hl, title_tile_data
     ld de, TILEDATA_START
     ld bc, title_tile_data_size
-    call mCopy
+    call mCopyVRAM
     
     CopyRegionToVRAM 18, 20, title_map_data, BACKGROUND_MAPDATA_START
     
