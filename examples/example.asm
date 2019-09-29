@@ -219,6 +219,61 @@ DB %00000100 ; Color 2, palette 1, %0bbbbbgg
 DB %00000011 ; Color 3, palette 1, %gggrrrrr
 DB %00000000 ; Color 3, palette 1, %0bbbbbgg
 
+GBCBackgroundPalettesDark:
+DB %11100111 ; Color 0, palette 0, %gggrrrrr
+DB %00011100 ; Color 0, palette 0, %0bbbbbgg
+DB %11100000 ; Color 1, palette 0, %gggrrrrr
+DB %00000100 ; Color 1, palette 0, %0bbbbbgg
+DB %01100000 ; Color 2, palette 0, %gggrrrrr
+DB %00000100 ; Color 2, palette 0, %0bbbbbgg
+DB %00000000 ; Color 3, palette 0, %gggrrrrr
+DB %00000000 ; Color 3, palette 0, %0bbbbbgg
+DB %10100111 ; Color 0, palette 1, %gggrrrrr
+DB %00010100 ; Color 0, palette 1, %0bbbbbgg 
+DB %00000111 ; Color 1, palette 1, %gggrrrrr
+DB %00000000 ; Color 1, palette 1, %0bbbbbgg
+DB %00000011 ; Color 2, palette 1, %gggrrrrr
+DB %00000000 ; Color 2, palette 1, %0bbbbbgg
+DB %00000000 ; Color 3, palette 1, %gggrrrrr
+DB %00000000 ; Color 3, palette 1, %0bbbbbgg
+
+GBCBackgroundPalettesDarker:
+DB %00100001 ; Color 0, palette 0, %gggrrrrr
+DB %00000100 ; Color 0, palette 0, %0bbbbbgg
+DB %00100000 ; Color 1, palette 0, %gggrrrrr
+DB %00000000 ; Color 1, palette 0, %0bbbbbgg
+DB %00100000 ; Color 2, palette 0, %gggrrrrr
+DB %00000000 ; Color 2, palette 0, %0bbbbbgg
+DB %00000000 ; Color 3, palette 0, %gggrrrrr
+DB %00000000 ; Color 3, palette 0, %0bbbbbgg
+DB %00100001 ; Color 0, palette 1, %gggrrrrr
+DB %00000100 ; Color 0, palette 1, %0bbbbbgg 
+DB %00000001 ; Color 1, palette 1, %gggrrrrr
+DB %00000000 ; Color 1, palette 1, %0bbbbbgg
+DB %00000000 ; Color 2, palette 1, %gggrrrrr
+DB %00000000 ; Color 2, palette 1, %0bbbbbgg
+DB %00000000 ; Color 3, palette 1, %gggrrrrr
+DB %00000000 ; Color 3, palette 1, %0bbbbbgg
+
+GBCBackgroundPalettesDarkest:
+DB %00000000 ; Color 0, palette 0, %gggrrrrr
+DB %00000000 ; Color 0, palette 0, %0bbbbbgg
+DB %00000000 ; Color 1, palette 0, %gggrrrrr
+DB %00000000 ; Color 1, palette 0, %0bbbbbgg
+DB %00000000 ; Color 2, palette 0, %gggrrrrr
+DB %00000000 ; Color 2, palette 0, %0bbbbbgg
+DB %00000000 ; Color 3, palette 0, %gggrrrrr
+DB %00000000 ; Color 3, palette 0, %0bbbbbgg
+DB %00000000 ; Color 0, palette 1, %gggrrrrr
+DB %00000000 ; Color 0, palette 1, %0bbbbbgg 
+DB %00000000 ; Color 1, palette 1, %gggrrrrr
+DB %00000000 ; Color 1, palette 1, %0bbbbbgg
+DB %00000000 ; Color 2, palette 1, %gggrrrrr
+DB %00000000 ; Color 2, palette 1, %0bbbbbgg
+DB %00000000 ; Color 3, palette 1, %gggrrrrr
+DB %00000000 ; Color 3, palette 1, %0bbbbbgg
+
+
 SECTION "Pong game code",ROM0
 SetupGBC:
     GBCEarlyExit ; No need to execute pointless code if we're not running on GBC 
@@ -438,15 +493,30 @@ TransitionToGame:
     ld a, %11111001
     ld [BG_PALETTE], a
     
+    ld hl, GBCBackgroundPalettesDark
+    xor a ; Start at color 0, palette 0 
+    ld b, 16 ; We have 16 bytes to write
+    call GBCApplyBackgroundPalettes
+    
     call ShortWait
     
     ld a, %11111110
     ld [BG_PALETTE], a
     
+    ld hl, GBCBackgroundPalettesDarker
+    xor a ; Start at color 0, palette 0 
+    ld b, 16 ; We have 16 bytes to write
+    call GBCApplyBackgroundPalettes
+    
     call ShortWait
     
     ld a, %11111111
     ld [BG_PALETTE], a
+    
+    ld hl, GBCBackgroundPalettesDarkest
+    xor a ; Start at color 0, palette 0 
+    ld b, 16 ; We have 16 bytes to write
+    call GBCApplyBackgroundPalettes
     
     call ShortWait
     
@@ -477,15 +547,30 @@ TransitionToGame:
     ld a, %11111110
     ld [BG_PALETTE], a
     
+    ld hl, GBCBackgroundPalettesDarker
+    xor a ; Start at color 0, palette 0 
+    ld b, 16 ; We have 16 bytes to write
+    call GBCApplyBackgroundPalettes
+    
     call ShortWait
     
     ld a, %11111001
     ld [BG_PALETTE], a 
     
+    ld hl, GBCBackgroundPalettesDark
+    xor a ; Start at color 0, palette 0 
+    ld b, 16 ; We have 16 bytes to write
+    call GBCApplyBackgroundPalettes
+    
     call ShortWait
     
     ld a, %11100100
     ld [BG_PALETTE], a 
+    
+    ld hl, GBCBackgroundPalettes
+    xor a ; Start at color 0, palette 0 
+    ld b, 16 ; We have 16 bytes to write
+    call GBCApplyBackgroundPalettes
     
     call ShortWait
     
