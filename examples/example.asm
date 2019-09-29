@@ -313,7 +313,7 @@ DB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 SECTION "Pong game code",ROM0
 SetupGBC:
-    GBCEarlyExit ; No need to execute pointless code if we're not running on GBC 
+    GBCEarlyExit ; Prevents garbage from being written to tile map on non-GBC by the palette map. 
     
     ld hl, GBCBackgroundPalettes
     xor a ; Start at color 0, palette 0 
