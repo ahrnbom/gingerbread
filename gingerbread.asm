@@ -347,7 +347,6 @@ mCopy:
     inc c
     jr  .skip
 .loop:
-    WaitForNonBusyLCD
     ld a, [hl+]
     ld [de], a
     inc de
@@ -437,6 +436,8 @@ RenderTextToEndByPosition:
     ld e, l 
     pop hl 
     
+    di
+    
     ; Start writing
     ld a, [hl]
 .draw:
@@ -450,7 +451,7 @@ RenderTextToEndByPosition:
     cp b 
     jr nz, .draw 
     
-    ret 
+    reti 
     
 ; Draws text until a certain number of characters have been written, with positions as X/Y coordinates. This might be a bit slow for repeated use every frame.
 ; B - number of characters to write 
@@ -493,7 +494,8 @@ RenderTextToLengthByPosition:
     ld d, h
     ld l, e 
     pop hl 
-     
+    
+    di
 .draw:
     ; Write characters until B is zero, decreasing it every time
     ld a, [hl+]
@@ -505,7 +507,7 @@ RenderTextToLengthByPosition:
     ; Is B zero? If so we should stop 
     ld a, b 
     cp 0 
-    ret z 
+    reti z 
     
     jr .draw
 
@@ -615,6 +617,8 @@ RenderTwoDecimalNumbersByPosition:
     ; Convert to tile number 
     add b 
     
+    di
+    
     ; Write the number 
     WaitForNonBusyLCDSafeA
     ld [hl+], a 
@@ -631,7 +635,7 @@ RenderTwoDecimalNumbersByPosition:
     ld [hl], a 
     
     pop hl 
-    ret 
+    reti 
 
 ; Draws four decimal (base 10) numbers, stored in a 16-bit number (for example $1234 would represent 1234)
 ; HL - The four numbers 
@@ -759,9 +763,11 @@ GBCApplySpritePalettes:
     
     ld [GBC_SPRITE_PALETTE_INDEX], a 
     
+    di ; To prevent an interrupt for interrupting while we try to write to VRAM in the limited time we have
+    
 .writeByte:    
+    WaitForNonBusyLCD ; Unlike background palettes, sprite palettes can only be written during H-Blank
     ld a, [hl]
-    WaitForNonBusyLCDSafeA
     ld [GBC_SPRITE_PALETTE], a 
     inc hl 
     
@@ -769,7 +775,7 @@ GBCApplySpritePalettes:
     dec b 
     ld a, b 
     cp 0 ; Is B equal to zero?
-    ret z 
+    reti z 
     
     jr .writeByte ; keep going
 
