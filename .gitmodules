@@ -1,0 +1,3 @@
+[submodule "gbt-player"]
+	path = gbt-player
+	url = https://github.com/AntonioND/gbt-player.git
