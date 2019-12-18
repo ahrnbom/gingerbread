@@ -2,3 +2,4 @@ examples/*.sav
 examples/*.sym
 examples/*.gb
 examples/*.gbc
+gbt-player/*

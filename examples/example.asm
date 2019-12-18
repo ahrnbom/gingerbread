@@ -14,7 +14,7 @@ SGB_SUPPORT EQU 1
 GBC_SUPPORT EQU 1
 
 ; Set the size of the ROM file here. 0 means 32 kB, 1 means 64 kB, 2 means 128 kB and so on.
-ROM_SIZE EQU 0 
+ROM_SIZE EQU 1 
 
 ; Set the size of save RAM inside the cartridge. 
 ; If printed to real carts, it needs to be small enough to fit. 
@@ -60,10 +60,17 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     
     ; Load title image into VRAM
     
+    ; We need to switch bank to whatever bank contains the tile data 
+    ld a, BANK(title_tile_data)
+    ld [ROM_BANK_SWITCH], a 
+    
     ld hl, title_tile_data
     ld de, TILEDATA_START
     ld bc, title_tile_data_size
     call mCopyVRAM
+    
+    ld a, BANK(title_map_data)
+    ld [ROM_BANK_SWITCH], a 
     
     CopyRegionToVRAM 18, 20, title_map_data, BACKGROUND_MAPDATA_START
     
@@ -353,7 +360,8 @@ SetupSGB:
     
 SetupSGBGameplay:
     ; Sets up palette usage which should be displayed during gameplay
-    SGBEarlyExit
+    
+    SGBEarlyExit    
     ld hl, SGBPal01Div
     call SGBSendData
     
@@ -574,7 +582,7 @@ TransitionToGame:
     
     ; Now that the screen is completely black, load the game graphics
     
-    ld a, BANK(title_tile_data)
+    ld a, BANK(pong_tile_data)
     ld [ROM_BANK_SWITCH], a
     
     ; Load pong tiles into VRAM 
@@ -589,8 +597,14 @@ TransitionToGame:
     ld bc, 32*32
     call mSetVRAM
     
+    ld a, BANK(pong_map_data)
+    ld [ROM_BANK_SWITCH], a 
+    
     ; Draw the pong map tiles 
     CopyRegionToVRAM 18, 20, pong_map_data, BACKGROUND_MAPDATA_START
+    
+    ld a, 1
+    ld [ROM_BANK_SWITCH], a 
     
     ; On SGB, this is the right time to switch to the gameplay palettes
     call SetupSGBGameplay
