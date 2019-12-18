@@ -21,8 +21,6 @@ if exist %name%.gb del %name%.gb
 
 echo Compilation step 1/4: Assembling...
 
-rgbasm -o%name%.o %name%.asm
-
 if defined include_gbt (
 copy ..\gbt-player\rgbds_example\gbt_player.asm .
 copy ..\gbt-player\rgbds_example\gbt_player_bank1.asm .
@@ -32,6 +30,8 @@ rgbasm -ogbt_player.o gbt_player.asm
 rgbasm -ogbt_player_bank1.o gbt_player_bank1.asm
 rgbasm -ofunkyforest.o music\funkyforest.asm
 )
+
+rgbasm -o%name%.o %name%.asm
 
 if errorlevel 1 goto cleanup
 

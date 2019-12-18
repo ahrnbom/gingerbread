@@ -23,12 +23,18 @@ RAM_SIZE EQU 1
 
 INCLUDE "gingerbread.asm"
 
+; To compile this game without gbt-player, comment out this line (don't set it to 0)
+USE_GBT_PLAYER EQU 1
+
 ; This section is for including files that need to be in data banks
 SECTION "Include@banks",ROMX
 INCLUDE "images/title.inc"
 INCLUDE "images/pong.inc"
 INCLUDE "images/sgb_border.inc"
 
+IF DEF(USE_GBT_PLAYER)
+INCLUDE "gbt_player.inc"
+ENDC
 
 ; Macro for copying a rectangular region into VRAM
 ; Changes ALL registers
@@ -82,6 +88,16 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
     call EnableAudio
     
     call SetupHighScore
+
+IF DEF(USE_GBT_PLAYER)   
+    ld      de,funkyforest_data
+    ld      bc,BANK(funkyforest_data)
+    ld      a,$05
+    call    gbt_play ; Play song
+ENDC 
+    
+    ld a, 1 
+    ld [ROM_BANK_SWITCH], a 
     
     jp TitleLoop
     
@@ -428,8 +444,26 @@ SetupHighScore:
     call RenderTwoDecimalNumbers
     
     ret 
+
+; To keep music playing at all times, call this before every halt command 
+; A - ROM bank to switch to after updating music (GBT Player switches banks when updating the music)    
+UpdateMusic:    
+IF DEF(USE_GBT_PLAYER)
+    push bc 
+    push af 
+    call gbt_update
+    
+    pop af 
+    pop bc 
+    ld [ROM_BANK_SWITCH], a 
+ENDC
+    ret 
     
 TitleLoop:
+
+    ld a, 1 
+    call UpdateMusic
+    
     halt
     nop ; Always do a nop after a halt, because of a CPU bug
     
@@ -445,6 +479,9 @@ ShortWait:
     ld b, 20
     
 .loop:    
+    ld a, 1 
+    call UpdateMusic
+
     halt 
     nop 
     
@@ -880,6 +917,9 @@ CheckBallOut:
     
     
     REPT 15
+    ld a, 1 
+    call UpdateMusic
+    
     halt 
     nop 
     ENDR
@@ -969,6 +1009,9 @@ CheckBallOut:
 ShorterWait:
     ld b, 4 
 .wait:
+    ld a, 1 
+    call UpdateMusic
+
     halt 
     nop 
     
@@ -1064,6 +1107,9 @@ GameLoop:
     call DrawBall
     call DrawScore 
 
+    ld a, 1 
+    call UpdateMusic
+    
     halt 
     nop 
     

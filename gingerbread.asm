@@ -98,8 +98,8 @@ WINDOW_MAPDATA_START        EQU $9C00 ; up to $9FFF
 SAVEDATA_START     EQU $A000 ; up to $BFFF
 
 RAM_START          EQU $C000 ; up to $E000, only write to data after USER_RAM_START as GingerBread uses some RAM before this for sprites etc.
-SPRITES_START      EQU $C000 ; up to $C0A0
-USER_RAM_START     EQU $C100 ; up to $E000
+SPRITES_START      EQU $C100 ; up to $C1A0
+USER_RAM_START     EQU $C200 ; up to $E000
 
 HRAM_START         EQU $F800 ; up to $FFFE
 OAMRAM_START       EQU $FE00 ; up to $FE9F
