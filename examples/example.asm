@@ -452,11 +452,10 @@ IF DEF(USE_GBT_PLAYER)
     push bc 
     push af 
     call gbt_update
-    
     pop af 
     pop bc 
-    ld [ROM_BANK_SWITCH], a 
 ENDC
+    ld [ROM_BANK_SWITCH], a 
     ret 
     
 TitleLoop:

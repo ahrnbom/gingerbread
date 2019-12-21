@@ -80,8 +80,8 @@ SPRITE_PALETTE_2 EQU $FF49
 ; GBC palettes 
 GBC_BG_PALETTE_INDEX      EQU $FF68
 GBC_BG_PALETTE            EQU $FF69
-GBC_SPRITE_PALETTE_INDEX EQU $FF6A
-GBC_SPRITE_PALETTE       EQU $FF6B
+GBC_SPRITE_PALETTE_INDEX  EQU $FF6A
+GBC_SPRITE_PALETTE        EQU $FF6B
 
 GBC_VRAM_BANK_SWITCH    EQU $FF4F
 
@@ -194,9 +194,9 @@ rLY EQU $FF44
 rDMA  EQU $FF46
 
 ; --- GingerBread RAM variables ---
-; GingerBread writes a few variables in RAM between $C000 and $C100. Let your own RAM usage start at $C100 to make sure none of your code messes with GingerBread
-; $C000 - $C0A0 are used for sprites, so these start after that
-SECTION "GingerBread RAM variables",WRAM0[$C0A1]
+; GingerBread writes a few variables in RAM between $C100 and $C1FF. Let your own RAM usage start at $C200 to make sure none of your code messes with GingerBread
+; $C100 - $C1A0 are used for sprites, so these start after that. The space between $C000-$C1000 is used by GBT-Player.
+SECTION "GingerBread RAM variables",WRAM0[$C1A1]
 RUNNING_ON_SGB: DS 1 
 RUNNING_ON_GBC: DS 1 
 
