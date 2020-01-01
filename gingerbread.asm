@@ -1,7 +1,9 @@
 ; GingerBread is a kind of standard library for Game Boy games written in assembly
 ; using the RGBDS system. It intends to provide basic functionality that almost 
 ; every game will need in one form or another. It is meant to be used alongside the
-; book... (TODO: link to the book, once available).
+; book "Game Boy Assembly Programming for the Modern Game Developer", available
+; here: https://teamlampoil.se/book/gbasmdev.pdf 
+; The book also works as a form of documentation for this library.
 
 ; --- ROM Header ---
 
