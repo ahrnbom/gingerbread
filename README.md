@@ -17,4 +17,9 @@ The GingerBread library attempts to contain a lot of basic functionality needed 
 
 The idea is to reduce the amount of boilerplate code needed to get started with Game Boy game development in Assembly. The book contains lots of examples and also servs as documentation for this library. 
 
+The library does not directly support playing background music. Instead, it is designed to be used alongside [GBT-Player](https://github.com/AntonioND/gbt-player) which is included as a git submodule. The library can also be used without GBT-Player.
+
+### Legal stuff 
+The library is released under the The Unlicense. It basically means you are allowed to use it for whatever purpose. 
+
 This library is written with no association or cooperation with Nintendo. The Game Boy is a trademark of Nintendo. 
