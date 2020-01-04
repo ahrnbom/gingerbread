@@ -22,6 +22,9 @@ The library does not directly support playing background music. Instead, it is d
 ## Requirements
 [RGBDS](https://github.com/rednex/rgbds) is necessary to compile GingerBread and its example(s). 
 
+## To do
+1. Make a stand-alone documentation document, specifying the constants and functions defined by GingerBread. Most of it is in the book, but having it available stand-alone is probably useful to many.
+
 ### Legal stuff 
 The library is released under the The Unlicense. It basically means you are allowed to use it for whatever purpose. 
 
