@@ -19,6 +19,9 @@ The idea is to reduce the amount of boilerplate code needed to get started with 
 
 The library does not directly support playing background music. Instead, it is designed to be used alongside [GBT-Player](https://github.com/AntonioND/gbt-player) which is included as a git submodule. The library can also be used without GBT-Player.
 
+## Requirements
+[RGBDS](https://github.com/rednex/rgbds) is necessary to compile GingerBread and its example(s). 
+
 ### Legal stuff 
 The library is released under the The Unlicense. It basically means you are allowed to use it for whatever purpose. 
 
