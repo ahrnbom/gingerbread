@@ -3,6 +3,9 @@
 #To compile without GBT Player, change this line to 'include_gbt=0'
 include_gbt=1
 
+# To compile "Hello world" demo, change this to "hello-world"
+name="example"
+
 if [ -f images/sgb_border.inc ]; then
     echo "Not building SGB border since it exists..."
 else
@@ -13,8 +16,6 @@ else
 fi
 
 cp ../gingerbread.asm .
-
-name="example"
 
 # delete existing ROM, if it exists
 if [ -f $name.gb ]; then

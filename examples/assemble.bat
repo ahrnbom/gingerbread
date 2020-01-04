@@ -3,6 +3,9 @@
 rem To compile without GBT Player, change this line to 'set "include_gbt="'
 set "include_gbt=1"
 
+rem To compile the Hello World demo, change this to "hello-world"
+set name="example"
+
 if exist images/sgb_border.inc (
 echo Not building SGB border since it exists...
 ) else (
@@ -13,8 +16,6 @@ cd examples
 )
 
 copy ..\gingerbread.asm .
-
-set name="example"
 
 REM delete existing ROM, if it exists
 if exist %name%.gb del %name%.gb
