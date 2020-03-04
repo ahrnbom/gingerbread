@@ -1,6 +1,7 @@
 @echo off
 
-rem To compile without GBT Player, change this line to 'set "include_gbt="'
+rem To compile without GBT Player, change this line to 'set "include_gbt="' 
+rem and comment out USE_GBT_PLAYER in the %name%.asm if necessary
 set "include_gbt=1"
 
 rem To compile the Hello World demo, change this to "hello-world"
