@@ -74,8 +74,8 @@ begin: ; GingerBread assumes that the label "begin" is where the game should sta
 
     ld b, $30 ; end character 
     ld c, 0 ; draw to background
-    ld d, 5 ; X position 
-    ld e, 6 ; Y position 
+    ld d, 4 ; X start position (0-19)
+    ld e, 8 ; Y start position (0-17)
     ld hl, SomeText ; text to write 
     call RenderTextToEnd
     
@@ -86,5 +86,3 @@ main:
     nop 
     
     jr main
-
-    
