@@ -1,5 +1,5 @@
 # GingerBread
-A library with some standard functions for making your own Game Boy games in Assembly, written from scratch. It was made alongside the book *Game Boy Assembly Programming for the Modern Game Developer* which [can be downloaded here](https://teamlampoil.se/book/gbasmdev.pdf).
+A library with some standard functions for making your own Game Boy games in Assembly, written from scratch. It was made alongside the book *Game Boy Assembly Programming for the Modern Game Developer* which [can be downloaded here](https://teamlampoil.se/book/gbasmdev.pdf). The source code for the book is available [here](https://github.com/ahrnbom/gbapfomgd).
 
 ## Functionality
 The GingerBread library attempts to contain a lot of basic functionality needed for most Game Boy games. It takes care of things like 
