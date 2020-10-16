@@ -25,6 +25,13 @@ The library does not directly support playing background music. Instead, it is d
 ## To do
 1. Make a stand-alone documentation document, specifying the constants and functions defined by GingerBread. Most of it is in the book, but having it available stand-alone is probably useful to many.
 
+## Why make this?
+During the development of [Rope & Bombs](http://teamlampoil.se), the lack of any cohesive and complete introduction to Game Boy development was a major hassle. To save others from having to figure out themselves like we did, [the book](https://github.com/ahrnbom/gbapfomgd) tries to explain things in a way that is (hopefully) easy to understand for people more used to modern programming. 
+
+Unfortunately, the amount of material needed to explain every necessary aspect of Game Boy development from the ground up would be so large that the book simply could not be finished. In order to relieve the book from having to explain absolutely *everything*, the GingerBread library was introduced which contains a bunch of boilerplate code. That way, new Game Boy developers can start coding their game much faster, while focusing on learning how to express their game logic, as opposed to starting with having to figure out how to write their ROM header (while simultaneously having to figure out what that is and why you need one). 
+
+We hope that, by introducing things in order of relevance, Game Boy development will be much more approachable. Once a developer has learned the basics, they may find that they no longer need, or no longer *want*, to use GingerBread and would rather code everything from scratch. If somebody reaches that point using our work, then we consider that a success.
+
 ### Legal stuff 
 The library is released under the The Unlicense. It basically means you are allowed to use it for whatever purpose. 
 
