@@ -15,7 +15,7 @@ The GingerBread library attempts to contain a lot of basic functionality needed 
 1. Taking care of the boot process
 1. Defining the ROM header 
 
-The idea is to reduce the amount of boilerplate code needed to get started with Game Boy game development in Assembly. The book contains lots of examples and also servs as documentation for this library. 
+The idea is to reduce the amount of boilerplate code needed to get started with Game Boy game development in Assembly. The book contains lots of examples and also serves as documentation for this library. 
 
 The library does not directly support playing background music. Instead, it is designed to be used alongside [GBT-Player](https://github.com/AntonioND/gbt-player) which is included as a git submodule. The library can also be used without GBT-Player.
 
