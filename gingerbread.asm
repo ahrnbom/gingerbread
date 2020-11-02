@@ -496,7 +496,7 @@ RenderTextToLengthByPosition:
 
     ; Now store this onto DE so we can get the read address back again
     ld d, h
-    ld l, e
+    ld e, l
     pop hl
 
     di
