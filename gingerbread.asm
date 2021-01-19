@@ -40,8 +40,8 @@ SECTION "header",ROM0[$0104]
     DB $BB,$BB,$67,$63,$6E,$0E,$EC,$CC,$DD,$DC,$99,$9F,$BB,$B9,$33,$3E
 
     ; The header, specifying ROM details.
-    DB {GAME_NAME}          ; $134 - Title of the game, in uppercase ASCII. Should be exactly 15 characters (padded with 0s if necessary)
-REPT 15-STRLEN({GAME_NAME})
+    DB "{GAME_NAME}"          ; $134 - Title of the game, in uppercase ASCII. Should be exactly 15 characters (padded with 0s if necessary)
+REPT 15-STRLEN("{GAME_NAME}")
     DB 0
 ENDR
     DB 	H_GBC_CODE          ; $143 - GBC functionality (0 for no, $80 for "black cart" and $C0 for GBC only)
